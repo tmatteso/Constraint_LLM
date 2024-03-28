@@ -22,6 +22,7 @@ class SinusoidalPositionalEmbedding(nn.Module):
 
     def forward(self, x):
         bsz, seq_len = x.shape
+        seq_len = x.shape
         max_pos = self.padding_idx + 1 + seq_len
         if self.weights is None or max_pos > self.weights.size(0):
             self.weights = self.get_embedding(max_pos)
