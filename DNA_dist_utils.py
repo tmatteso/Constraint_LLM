@@ -143,6 +143,7 @@ def epoch(model, rank, criterion,
         print("data", data) # should be str
         # collect data
         encoded_sequence = tokenizer.encode(data[0])
+        print("encoded_sequence", encoded_sequence)
         # feed it through the model forward
         output = model.forward(encoded_sequence)
         # compute the loss
