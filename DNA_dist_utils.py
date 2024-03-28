@@ -151,13 +151,13 @@ def epoch(model, rank, criterion,
         output = model.forward(encoded_sequence)
         logits, embeddings = output["logits"], output["embeddings"]
         # so labels need to be torch.Size([1, N, vocab_size])
-        vocab_size = tokenizer.get_vocab_size()  # Get the size of the vocabulary
-        labels = F.one_hot(encoded_sequence, num_classes=vocab_size)
+        #vocab_size = tokenizer.get_vocab_size()  # Get the size of the vocabulary
+        #labels = F.one_hot(encoded_sequence, num_classes=vocab_size)
         #print("encoded_sequence", encoded_sequence.shape)
-        print("labels", labels.shape)
+        #print("labels", labels.shape)
         # compute the loss
         # what is true here?
-        loss = criterion(logits, labels)
+        loss = criterion(logits, encoded_sequence)
         # normalize loss to account for batch accumulation
         loss = loss / accumulation_steps
         loss.backward()
