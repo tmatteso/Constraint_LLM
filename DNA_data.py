@@ -95,7 +95,7 @@ class DNA_dataset(torch.utils.data.Dataset):
         return len(self.dna_files)
     
 # Usage:
-# chunk_file('human_genome_contigs/chr1.fasta', 'chr1_chunks', chunk_size=2048)
+chunk_file('human_genome_contigs/chr1.fasta', 'chr1_chunks', chunk_size=2048)
 # 112540 chunks @ 2048
             
 # Usage:

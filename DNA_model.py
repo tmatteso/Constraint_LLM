@@ -403,6 +403,7 @@
 # correlation with gnomad low frequency variants
 # recover secondary structure from exon subset of attention map?
 # recover genome secondary structure from the whole attention map
+# atac QTLs are more heritable and line up better with complex human disease
 
 
 
