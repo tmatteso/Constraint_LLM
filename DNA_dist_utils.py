@@ -142,12 +142,16 @@ def epoch(model, rank, criterion,
     for batch_i, (data) in enumerate(train_loader):
         print("data", data) # should be str
         # collect data
+        
         encoded_sequence = torch.tensor(tokenizer.encode(data[0]).ids, dtype=torch.long).to(rank)
         encoded_sequence = encoded_sequence.unsqueeze(0)
         print("encoded_sequence", encoded_sequence.shape)
         # feed it through the model forward
         output = model.forward(encoded_sequence)
+        #print("encoded_sequence", encoded_sequence.shape)
+        print("output", output.shape)
         # compute the loss
+        # what is true here?
         loss = criterion()
         # normalize loss to account for batch accumulation
         loss = loss / accumulation_steps
