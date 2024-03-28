@@ -143,9 +143,9 @@ def epoch(model, rank, criterion,
         print("data", data) # should be str
         # collect data
         encoded_sequence = tokenizer.encode(data[0])
-        print("encoded_sequence", torch.Tensor(encoded_sequence.ids))
+        print("encoded_sequence", torch.tensor(encoded_sequence.ids, dtype=torch.long))
         # feed it through the model forward
-        output = model.forward(torch.Tensor(encoded_sequence.ids))
+        output = model.forward(torch.tensor(encoded_sequence.ids, dtype=torch.long))
         # compute the loss
         loss = criterion()
         # normalize loss to account for batch accumulation
