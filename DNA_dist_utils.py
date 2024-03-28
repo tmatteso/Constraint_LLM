@@ -148,8 +148,9 @@ def epoch(model, rank, criterion,
         print("encoded_sequence", encoded_sequence.shape)
         # feed it through the model forward
         output = model.forward(encoded_sequence)
+        logits, embeddings = output["logits"], output["embeddings"]
         #print("encoded_sequence", encoded_sequence.shape)
-        print("output", output.shape)
+        print("logits", logits)
         # compute the loss
         # what is true here?
         loss = criterion()
