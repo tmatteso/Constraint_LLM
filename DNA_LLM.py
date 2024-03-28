@@ -125,7 +125,7 @@ class ConstraintBertModel(nn.Module):
         # get the padding mask
         padding_mask = tokens.eq(self.padding_idx)  # B, T
         print("padding mask", padding_mask.shape)
-        print("device", self.embed_scale.device, tokens.device)
+        print("device", tokens.device)
         # compute the embeddings and apply RoBERTa's mask scaling factor
         x = self.embed_scale * self.embed_tokens(tokens)
         print("token embeddings", x.shape)
