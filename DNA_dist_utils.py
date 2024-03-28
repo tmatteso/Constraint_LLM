@@ -143,9 +143,9 @@ def epoch(model, rank, criterion,
         print("data", data) # should be str
         # collect data
         encoded_sequence = tokenizer.encode(data[0])
-        print("encoded_sequence", encoded_sequence)
+        print("encoded_sequence", encoded_sequence.ids)
         # feed it through the model forward
-        output = model.forward(encoded_sequence)
+        output = model.forward(encoded_sequence.ids)
         # compute the loss
         loss = criterion()
         # normalize loss to account for batch accumulation
