@@ -236,4 +236,4 @@ def single_GPU_main(pdb_dir_path, epoch_num, model, optim, criterion, use_wandb,
         for batch_i, (data) in enumerate(train_loader):
             epoch(model, rank, criterion,
                world_size, train_loader, use_wandb,
-               optim, epoch_num, use_fsdp)
+               optim, epoch_num, use_fsdp, tokenizer)
