@@ -157,7 +157,7 @@ def epoch(model, rank, criterion,
         print("labels", labels.shape)
         # compute the loss
         # what is true here?
-        loss = criterion()
+        loss = criterion(logits, labels)
         # normalize loss to account for batch accumulation
         loss = loss / accumulation_steps
         loss.backward()
