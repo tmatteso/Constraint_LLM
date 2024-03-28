@@ -142,7 +142,7 @@ def epoch(model, rank, criterion,
     for batch_i, (data) in enumerate(train_loader):
         print("data", data) # should be str
         # collect data
-        encoded_sequence = tokenizer.encode(data)
+        encoded_sequence = tokenizer.encode(data[0])
         # feed it through the model forward
         output = model.forward(encoded_sequence)
         # compute the loss
