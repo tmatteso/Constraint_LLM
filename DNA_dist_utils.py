@@ -33,6 +33,7 @@ from torch.distributed.algorithms._checkpoint.checkpoint_wrapper import (
     )
 
 from DNA_data import DNA_dataset
+import torch.nn.functional as F
 
 def setup(rank, world_size, master_addr = 'localhost'): #"10.55.5.20"):
     os.environ['MASTER_ADDR'] = master_addr 
@@ -149,8 +150,11 @@ def epoch(model, rank, criterion,
         # feed it through the model forward
         output = model.forward(encoded_sequence)
         logits, embeddings = output["logits"], output["embeddings"]
+        # so labels need to be torch.Size([1, N, vocab_size])
+        vocab_size = tokenizer.get_vocab_size()  # Get the size of the vocabulary
+        labels = F.one_hot(encoded_sequence, num_classes=vocab_size)
         #print("encoded_sequence", encoded_sequence.shape)
-        print("logits", logits)
+        print("labels", labels.shape)
         # compute the loss
         # what is true here?
         loss = criterion()
