@@ -85,6 +85,8 @@ class ConstraintBertModel(nn.Module):
         self.ffn_embedding_dim = ffn_embedding_dim
         self.head_num = head_num
         self.dropout = dropout
+        self.args = dict()
+        self.args["token_dropout"] = False
 
         # adjust this code to use a Tokenizers tokenizer from Hugging Face
         self.alphabet_size = (tokenizer.get_vocab_size())
