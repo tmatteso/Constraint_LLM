@@ -130,7 +130,7 @@ class ConstraintBertModel(nn.Module):
         print("device", tokens.device)
         # compute the embeddings and apply RoBERTa's mask scaling factor
         x = self.embed_scale * self.embed_tokens(tokens)
-        print("token embeddings", x.shape)
+        print("token embeddings", x)
         # add add token dropout/ BERT masking
         if getattr(self.args, "token_dropout", False):
             x.masked_fill_((tokens == self.mask_idx).unsqueeze(-1), 0.0)
@@ -139,14 +139,14 @@ class ConstraintBertModel(nn.Module):
             src_lengths = (~padding_mask).sum(-1)
             mask_ratio_observed = (tokens == self.mask_idx).sum(-1).float() / src_lengths
             x = x * (1 - mask_ratio_train) / (1 - mask_ratio_observed)[:, None, None]
-        print("x after mask", x.shape)
+        print("x after mask", x)
         # add positional encodings
         x = x + self.embed_positions(tokens)
-        print("x after positional embedding", x.shape)
+        print("x after positional embedding", x)
         # needed for some reason? -- try with the built in encoder layers and see if any issues
         if padding_mask is not None:
             x = x * (1 - padding_mask.unsqueeze(-1).type_as(x))
-        print("x after padding mask unsqueeze", x.shape)
+        print("x after padding mask unsqueeze", x)
         if not padding_mask.any():
             padding_mask = None
 
@@ -154,9 +154,9 @@ class ConstraintBertModel(nn.Module):
         # padding mask should be (B, seq_len)
         # put it through the Transformer tower, pass the padding mask
         x = self.whole_encoder(x, src_key_padding_mask=padding_mask)
-        print("x after encoding", x.shape)
+        print("x after encoding", x)
         # apply the LM head
-        logit_embed_dict = self._lm_head(x)
+        logit_embed_dict = self.lm_head(x)
         print("logits", logit_embed_dict["logits"].shape)
         print("embeddings", logit_embed_dict["embeddings"].shape)
         # logit_embed_dict = {"logits": x, "embeddings": hidden_representations}
