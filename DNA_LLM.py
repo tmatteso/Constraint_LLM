@@ -157,8 +157,8 @@ class ConstraintBertModel(nn.Module):
         #print("x after encoding", x)
         # apply the LM head
         logit_embed_dict = self.lm_head(x)
-        print("logits", logit_embed_dict["logits"].shape)
-        print("embeddings", logit_embed_dict["embeddings"].shape)
+        # print("logits", logit_embed_dict["logits"].shape)
+        # print("embeddings", logit_embed_dict["embeddings"].shape)
         # logit_embed_dict = {"logits": x, "embeddings": hidden_representations}
         # get the logit and embeddings
         return logit_embed_dict
