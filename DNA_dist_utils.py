@@ -103,10 +103,6 @@ def fsdp_main(rank, world_size, pdb_dir_path, epoch_num, criterion, model, optim
     checkpoint_wrapper,
     checkpoint_impl=CheckpointImpl.NO_REENTRANT,
     )
-    # storage offload wrapper -- wayyyyyyyyy tooo slowww
-    # non_reentrant_wrapper = partial(
-    # offload_wrapper,
-    # )
     # Lambda function to check if a submodule is an instance of any layer in the dictionary
     check_fn = lambda submodule: any(isinstance(submodule, layer_class) for layer_class in layers)
     apply_activation_checkpointing(
@@ -147,7 +143,7 @@ def epoch(model, rank, criterion,
         #print("data", data) # should be str
         # collect data
         
-        encoded_sequence = torch.tensor(tokenizer.encode(data[0]).ids, dtype=torch.long).to(rank)[:8182]
+        encoded_sequence = torch.tensor(tokenizer.encode(data[0]).ids, dtype=torch.long).to(rank)[:32768]
         encoded_sequence = encoded_sequence.unsqueeze(0)
         print("encoded_sequence", encoded_sequence.shape) # should be torch.Size([1, N])
         # it wants logits to be torch.Size([1, vocab_size]) for CE loss
