@@ -90,7 +90,7 @@ def fsdp_main(rank, world_size, pdb_dir_path, epoch_num, criterion, model, optim
                  auto_wrap_policy = my_auto_wrap_policy, # this recursively wraps everything!
                  # a better wrapping policy may be the best option
                  # this might be better to speed it up
-                 cpu_offload=CPUOffload(offload_params=True), 
+                 #cpu_offload=CPUOffload(offload_params=True), 
                  # CPU offload was messing up loss calculation -- still seems true -- now it doesn't
                  device_id=torch.cuda.current_device(),
                  mixed_precision=bfSixteen,
@@ -143,7 +143,7 @@ def epoch(model, rank, criterion,
         #print("data", data) # should be str
         # collect data
         # 65536 tokens is max without activation checkpointing, mixed precision, fsdp
-        encoded_sequence = torch.tensor(tokenizer.encode(data[0]).ids, dtype=torch.long).to(rank)[:16384]
+        encoded_sequence = torch.tensor(tokenizer.encode(data[0]).ids, dtype=torch.long).to(rank)[:8192]
         encoded_sequence = encoded_sequence.unsqueeze(0)
         print("encoded_sequence", encoded_sequence.shape) # should be torch.Size([1, N])
         # it wants logits to be torch.Size([1, vocab_size]) for CE loss
