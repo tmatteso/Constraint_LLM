@@ -147,7 +147,7 @@ def epoch(model, rank, criterion,
         
         encoded_sequence = torch.tensor(tokenizer.encode(data[0]).ids, dtype=torch.long).to(rank)
         encoded_sequence = encoded_sequence.unsqueeze(0)
-        #print("encoded_sequence", encoded_sequence.shape) # should be torch.Size([1, N])
+        print("encoded_sequence", encoded_sequence.shape) # should be torch.Size([1, N])
         # it wants logits to be torch.Size([1, vocab_size]) for CE loss
         # feed it through the model forward
         output = model.forward(encoded_sequence)
