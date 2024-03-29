@@ -8,8 +8,9 @@ import numpy as np
 import time
 from argparse import ArgumentParser
 import math
-from DNA_dist_utils import single_GPU_main
+from DNA_dist_utils import single_GPU_main, fsdp_main
 from tokenizers import Tokenizer
+import torch.multiprocessing as mp
 
 # add positional encodings
 class SinusoidalPositionalEmbedding(nn.Module):
@@ -180,6 +181,8 @@ def main():
     
     epoch_num = 1
     use_wandb = False
+    multi_GPU = True
+    WORLD_SIZE = torch.cuda.device_count()
 
     tokenizer = Tokenizer.from_file("chr1_tokenizer.json")
     # you need to add all the special tokens to tokenizer
@@ -197,17 +200,16 @@ def main():
     #print("hi", (optimizer))
     # may want a scheduler later
     #scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1.0, gamma=0.95)
-    
-    single_GPU_main(args.chunk_dir, epoch_num, model, optimizer, criterion, use_wandb, tokenizer)
-    # if multi_GPU:
-    #     # however the model doesn't seem to be training. No detectable moveement in weights at all 
-    #     mp.spawn(fsdp_main,
-    #             args = (WORLD_SIZE, pdb_dir_path,
-    #                     epoch, SEQ_LEN, model, OPURL),
-    #             nprocs = WORLD_SIZE,
-    #             join = True
-    #             )
-    #     wandb.finish()
+
+    #single_GPU_main(args.chunk_dir, epoch_num, model, optimizer, criterion, use_wandb, tokenizer)
+    if multi_GPU:
+        # however the model doesn't seem to be training. No detectable moveement in weights at all 
+        mp.spawn(fsdp_main,
+                args = (WORLD_SIZE, args.chunk_dir, epoch_num, criterion, model, optimizer),
+                nprocs = WORLD_SIZE,
+                join = True
+                )
+        #wandb.finish()
     # else:
     #     if use_wandb:
     #         wandb.init(project="ConstraintBERT")

@@ -35,6 +35,7 @@ from torch.distributed.algorithms._checkpoint.checkpoint_wrapper import (
 from DNA_data import DNA_dataset
 import torch.nn.functional as F
 
+
 def setup(rank, world_size, master_addr = 'localhost'): #"10.55.5.20"):
     os.environ['MASTER_ADDR'] = master_addr 
     os.environ['MASTER_PORT'] = '12355'
