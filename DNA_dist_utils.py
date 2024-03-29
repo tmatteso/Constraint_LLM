@@ -139,7 +139,8 @@ def epoch(model, rank, criterion,
         ddp_loss = torch.zeros(2).to(rank)
 
     accumulation_counter = 0
-
+    total_loss = 0 
+    
     for batch_i, (data) in enumerate(train_loader):
         print("data", data) # should be str
         # collect data
@@ -160,6 +161,7 @@ def epoch(model, rank, criterion,
         # compute the loss
         # what is true here?
         loss = criterion(logits, encoded_sequence)
+        print(loss)
         # normalize loss to account for batch accumulation
         loss = loss / accumulation_steps
         loss.backward()
