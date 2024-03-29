@@ -131,7 +131,7 @@ def fsdp_main(rank, world_size, pdb_dir_path, epoch_num, criterion, model, optim
 # I think you can just write one function with an arg that controls FSDP or not
 def epoch(model, rank, criterion,
                world_size, train_loader, use_wandb,
-               optim, epoch_num, use_fsdp, tokenizer, accumulation_steps = 128):
+               optim, epoch_num, use_fsdp, tokenizer, accumulation_steps = 2):
     
     if use_fsdp:
         # need to divide by total gpu number to get local number of accumulation steps
