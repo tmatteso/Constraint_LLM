@@ -79,8 +79,8 @@ class RobertaLMHead(nn.Module):
 class ConstraintBertModel(nn.Module):
     def __init__(self, tokenizer, encoder_layers = 5, 
                  #embedding_dim = 1024, ffn_embedding_dim = 5120,  
-                 embedding_dim = 262144, ffn_embedding_dim = 262144,
-                 head_num = 256, dropout=0.1):
+                 embedding_dim = 8192, ffn_embedding_dim = 5120,
+                 head_num = 64, dropout=0.1):
         super().__init__()
         self.encoder_layers = encoder_layers
         self.embedding_dim = embedding_dim
