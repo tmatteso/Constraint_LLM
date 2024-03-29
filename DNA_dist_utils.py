@@ -99,7 +99,7 @@ def fsdp_main(rank, world_size, pdb_dir_path, epoch_num, criterion, model, optim
                  sharding_strategy=ShardingStrategy.FULL_SHARD,
                 )
     # now we apply an activation checkpoint wrap
-    non_reentrant_wrapper = partial(
+    non_reentrant_wrapper = functools.partial(
     checkpoint_wrapper,
     checkpoint_impl=CheckpointImpl.NO_REENTRANT,
     )

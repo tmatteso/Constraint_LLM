@@ -204,7 +204,7 @@ def main():
     #single_GPU_main(args.chunk_dir, epoch_num, model, optimizer, criterion, use_wandb, tokenizer)
     if multi_GPU:
         print(2)
-        # however the model doesn't seem to be training. No detectable moveement in weights at all 
+        # however the model doesn't seem to be training. No detectable movement in weights at all 
         mp.spawn(fsdp_main,
                 args = (WORLD_SIZE, args.chunk_dir, epoch_num, criterion, model, optimizer),
                 nprocs = WORLD_SIZE,
