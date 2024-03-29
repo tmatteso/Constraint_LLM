@@ -47,6 +47,7 @@ def cleanup():
 def fsdp_main(rank, world_size, pdb_dir_path, epoch_num, criterion, model, optim):
     # set up the nccl process group
     setup(rank, world_size)  
+    print(3)
     #wandb.init(project="constraint-bert")
 
     dataset1 = DNA_dataset(pdb_dir_path)
