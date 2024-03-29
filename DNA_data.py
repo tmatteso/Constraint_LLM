@@ -60,7 +60,7 @@ def train_bpe_tokenizer(file_path, vocab_size=30000, chunk_size=10000):
     return tokenizer
 
 # chunk up the original big fasta before dataloader ingest
-def chunk_file(input_file, output_dir, chunk_size=49152):
+def chunk_file(input_file, output_dir, chunk_size=98304):
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 

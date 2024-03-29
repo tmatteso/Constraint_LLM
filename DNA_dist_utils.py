@@ -46,7 +46,7 @@ def cleanup():
 def fsdp_main(rank, world_size, pdb_dir_path, epoch_num, criterion, model, optim):
     # set up the nccl process group
     setup(rank, world_size)  
-    wandb.init(project="constraint-bert")
+    #wandb.init(project="constraint-bert")
 
     dataset1 = DNA_dataset(pdb_dir_path)
     sampler1 = DistributedSampler(dataset1, # this has no effect on making it load less than GPU number of samples
@@ -54,8 +54,8 @@ def fsdp_main(rank, world_size, pdb_dir_path, epoch_num, criterion, model, optim
                                   num_replicas=world_size, 
                                   shuffle=True)
     train_loader = torch.utils.data.DataLoader(dataset1,
-                                                collate_fn=collate_fn, # need to be defined
-                                                #batch_size=1,
+                                                #collate_fn=collate_fn, # need to be defined
+                                                batch_size=1,
                                                 shuffle=False, 
                                                 pin_memory=True,
                                                 sampler=sampler1,
@@ -113,7 +113,7 @@ def fsdp_main(rank, world_size, pdb_dir_path, epoch_num, criterion, model, optim
     # now try torch compile -- doesn't play nice with fsdp!
     # model = torch.compile(model, mode="max-autotune")
     use_fsdp = True
-    use_wandb = True
+    use_wandb = False
     # start the distributed processes
     init_start_event.record()
         
@@ -145,7 +145,7 @@ def epoch(model, rank, criterion,
         #print("data", data) # should be str
         # collect data
         
-        encoded_sequence = torch.tensor(tokenizer.encode(data[0]).ids, dtype=torch.long).to(rank)[:2048]
+        encoded_sequence = torch.tensor(tokenizer.encode(data[0]).ids, dtype=torch.long).to(rank)[:4096]
         encoded_sequence = encoded_sequence.unsqueeze(0)
         print("encoded_sequence", encoded_sequence.shape) # should be torch.Size([1, N])
         # it wants logits to be torch.Size([1, vocab_size]) for CE loss
