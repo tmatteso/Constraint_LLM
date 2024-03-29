@@ -44,7 +44,7 @@ def setup(rank, world_size, master_addr = 'localhost'): #"10.55.5.20"):
 def cleanup():
     dist.destroy_process_group()
 
-def fsdp_main(rank, world_size, pdb_dir_path, epoch_num, criterion, model, optim):
+def fsdp_main(rank, world_size, pdb_dir_path, epoch_num, criterion, model, optim, tokenizer):
     # set up the nccl process group
     setup(rank, world_size)  
     print(3)
@@ -124,7 +124,7 @@ def fsdp_main(rank, world_size, pdb_dir_path, epoch_num, criterion, model, optim
             print(f"Epoch {i}")
         epoch(model, rank, criterion,
                world_size, train_loader,  use_wandb,
-               optim, epoch_num, use_fsdp)
+               optim, epoch_num, use_fsdp, tokenizer)
 
     # end the distributed processes
     init_end_event.record()
