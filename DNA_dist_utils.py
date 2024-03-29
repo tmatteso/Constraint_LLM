@@ -146,10 +146,12 @@ def epoch(model, rank, criterion,
         
         encoded_sequence = torch.tensor(tokenizer.encode(data[0]).ids, dtype=torch.long).to(rank)
         encoded_sequence = encoded_sequence.unsqueeze(0)
-        print("encoded_sequence", encoded_sequence.shape)
+        print("encoded_sequence", encoded_sequence.shape) # should be torch.Size([1, N])
+        # it wants logits to be torch.Size([1, vocab_size]) for CE loss
         # feed it through the model forward
         output = model.forward(encoded_sequence)
         logits, embeddings = output["logits"], output["embeddings"]
+        logits = logits.permute(0, 2, 1)
         # so labels need to be torch.Size([1, N, vocab_size])
         #vocab_size = tokenizer.get_vocab_size()  # Get the size of the vocabulary
         #labels = F.one_hot(encoded_sequence, num_classes=vocab_size)
