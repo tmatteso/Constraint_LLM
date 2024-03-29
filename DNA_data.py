@@ -60,7 +60,7 @@ def train_bpe_tokenizer(file_path, vocab_size=30000, chunk_size=10000):
     return tokenizer
 
 # chunk up the original big fasta before dataloader ingest
-def chunk_file(input_file, output_dir, chunk_size=2048):
+def chunk_file(input_file, output_dir, chunk_size=8192):
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
@@ -95,7 +95,7 @@ class DNA_dataset(torch.utils.data.Dataset):
         return len(self.dna_files)
     
 # Usage:
-#chunk_file('human_genome_contigs/chr1.fasta', 'chr1_chunks', chunk_size=2048)
+chunk_file('human_genome_contigs/chr1.fasta', 'chr1_chunks', chunk_size=2048)
 # 112540 chunks @ 2048
             
 # Usage:
