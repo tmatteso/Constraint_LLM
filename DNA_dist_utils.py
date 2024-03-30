@@ -89,7 +89,7 @@ def fsdp_main(rank, world_size, pdb_dir_path, epoch_num, criterion, model, optim
                  use_orig_params = True, 
                  auto_wrap_policy = my_auto_wrap_policy, # this recursively wraps everything!
                  # a better wrapping policy may be the best option
-                 # this might be better to speed it up
+                 # cpu offload actually makes you run out of memory faster. Is this a bug?
                  #cpu_offload=CPUOffload(offload_params=True), 
                  # CPU offload was messing up loss calculation -- still seems true -- now it doesn't
                  device_id=torch.cuda.current_device(),
@@ -149,7 +149,7 @@ def epoch(model, rank, criterion,
 
         # chinchilla estimate for 150B tokens is ~ 10B params, this is ~10% of Whole genome across 500 genomes
         # 7.5 B tokens is ~ 500M params, ~1% of whole genome across 250 genomes
-        encoded_sequence = torch.tensor(tokenizer.encode(data[0]).ids, dtype=torch.long).to(rank)[:32768]
+        encoded_sequence = torch.tensor(tokenizer.encode(data[0]).ids, dtype=torch.long).to(rank)[:65536]
         encoded_sequence = encoded_sequence.unsqueeze(0)
         print("encoded_sequence", encoded_sequence.shape) # should be torch.Size([1, N])
         # it wants logits to be torch.Size([1, vocab_size]) for CE loss
