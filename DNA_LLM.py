@@ -11,6 +11,7 @@ import math
 from DNA_dist_utils import single_GPU_main, fsdp_main
 from tokenizers import Tokenizer
 import torch.multiprocessing as mp
+import wandb
 
 # add positional encodings
 class SinusoidalPositionalEmbedding(nn.Module):
@@ -182,7 +183,7 @@ def main():
     
     epoch_num = 1
     use_wandb = False
-    multi_GPU = True
+    multi_GPU = False
     WORLD_SIZE = torch.cuda.device_count()
 
     tokenizer = Tokenizer.from_file("chr1_tokenizer.json")
@@ -202,7 +203,7 @@ def main():
     # may want a scheduler later
     #scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1.0, gamma=0.95)
     print(1)
-    #single_GPU_main(args.chunk_dir, epoch_num, model, optimizer, criterion, use_wandb, tokenizer)
+    #
     if multi_GPU:
         print(2)
         # however the model doesn't seem to be training. No detectable movement in weights at all 
@@ -213,14 +214,14 @@ def main():
                 join = True
                 )
         #wandb.finish()
-    # else:
-    #     if use_wandb:
-    #         wandb.init(project="ConstraintBERT")
+    else:
+        if use_wandb:
+            wandb.init(project="ConstraintBERT")
 
-    #     single_GPU_main(pdb_dir_path, epoch, SEQ_LEN, model, use_wandb)
+        single_GPU_main(args.chunk_dir, epoch_num, model, optimizer, criterion, use_wandb, tokenizer)
 
-    #     if use_wandb:
-    #         wandb.finish()
+        if use_wandb:
+            wandb.finish()
 
 if __name__ == "__main__":
     main()
