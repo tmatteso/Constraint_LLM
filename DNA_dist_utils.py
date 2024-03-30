@@ -98,16 +98,16 @@ def fsdp_main(rank, world_size, pdb_dir_path, epoch_num, criterion, model, optim
                  sync_module_states=True,
                  sharding_strategy=ShardingStrategy.FULL_SHARD,
                 )
-    # now we apply an activation checkpoint wrap
-    non_reentrant_wrapper = functools.partial(
-    checkpoint_wrapper,
-    checkpoint_impl=CheckpointImpl.NO_REENTRANT,
-    )
-    # Lambda function to check if a submodule is an instance of any layer in the dictionary
-    check_fn = lambda submodule: any(isinstance(submodule, layer_class) for layer_class in layers)
-    apply_activation_checkpointing(
-        model, checkpoint_wrapper_fn=non_reentrant_wrapper, check_fn=check_fn
-    )
+    # # now we apply an activation checkpoint wrap
+    # non_reentrant_wrapper = functools.partial(
+    # checkpoint_wrapper,
+    # checkpoint_impl=CheckpointImpl.NO_REENTRANT,
+    # )
+    # # Lambda function to check if a submodule is an instance of any layer in the dictionary
+    # check_fn = lambda submodule: any(isinstance(submodule, layer_class) for layer_class in layers)
+    # apply_activation_checkpointing(
+    #     model, checkpoint_wrapper_fn=non_reentrant_wrapper, check_fn=check_fn
+    # )
     # now try torch compile -- doesn't play nice with fsdp!
     # model = torch.compile(model, mode="max-autotune")
     use_fsdp = True
@@ -151,7 +151,7 @@ def epoch(model, rank, criterion,
 
         # chinchilla estimate for 150B tokens is ~ 10B params, this is ~10% of Whole genome across 500 genomes
         # 7.5 B tokens is ~ 500M params, ~1% of whole genome across 250 genomes
-        encoded_sequence = torch.tensor(tokenizer.encode(data[0]).ids, dtype=torch.long).to(rank)[:131072]
+        encoded_sequence = torch.tensor(tokenizer.encode(data[0]).ids, dtype=torch.long).to(rank)[:16384]
         encoded_sequence = encoded_sequence.unsqueeze(0)
         print("encoded_sequence", encoded_sequence.shape) # should be torch.Size([1, N])
         # it wants logits to be torch.Size([1, vocab_size]) for CE loss
