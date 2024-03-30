@@ -151,7 +151,8 @@ def epoch(model, rank, criterion,
 
         # chinchilla estimate for 150B tokens is ~ 10B params, this is ~10% of Whole genome across 500 genomes
         # 7.5 B tokens is ~ 500M params, ~1% of whole genome across 250 genomes
-        encoded_sequence = torch.tensor(tokenizer.encode(data[0]).ids, dtype=torch.long).to(rank)[:32768]
+        seq_len = int(32768 /2)
+        encoded_sequence = torch.tensor(tokenizer.encode(data[0]).ids, dtype=torch.long).to(rank)[:seq_len]
         encoded_sequence = encoded_sequence.unsqueeze(0)
         print("encoded_sequence", encoded_sequence.shape) # should be torch.Size([1, N])
         # it wants logits to be torch.Size([1, vocab_size]) for CE loss
