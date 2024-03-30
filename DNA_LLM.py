@@ -184,7 +184,7 @@ def main():
     
     epoch_num = 1
     use_wandb = False
-    multi_GPU = False
+    multi_GPU = True
     WORLD_SIZE = torch.cuda.device_count()
 
     tokenizer = Tokenizer.from_file("chr1_tokenizer.json")
