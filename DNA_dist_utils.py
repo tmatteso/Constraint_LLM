@@ -98,16 +98,16 @@ def fsdp_main(rank, world_size, pdb_dir_path, epoch_num, criterion, model, optim
                  sync_module_states=True,
                  sharding_strategy=ShardingStrategy.FULL_SHARD,
                 )
-    # now we apply an activation checkpoint wrap
-    non_reentrant_wrapper = functools.partial(
-    checkpoint_wrapper,
-    checkpoint_impl=CheckpointImpl.NO_REENTRANT,
-    )
-    # Lambda function to check if a submodule is an instance of any layer in the dictionary
-    check_fn = lambda submodule: any(isinstance(submodule, layer_class) for layer_class in layers)
-    apply_activation_checkpointing(
-        model, checkpoint_wrapper_fn=non_reentrant_wrapper, check_fn=check_fn
-    )
+    # # now we apply an activation checkpoint wrap
+    # non_reentrant_wrapper = functools.partial(
+    # checkpoint_wrapper,
+    # checkpoint_impl=CheckpointImpl.NO_REENTRANT,
+    # )
+    # # Lambda function to check if a submodule is an instance of any layer in the dictionary
+    # check_fn = lambda submodule: any(isinstance(submodule, layer_class) for layer_class in layers)
+    # apply_activation_checkpointing(
+    #     model, checkpoint_wrapper_fn=non_reentrant_wrapper, check_fn=check_fn
+    # )
     # now try torch compile -- doesn't play nice with fsdp!
     # model = torch.compile(model, mode="max-autotune")
     use_fsdp = True
@@ -158,13 +158,13 @@ def epoch(model, rank, criterion,
         # fix layer number to 5, 16 attention heads, embedding_dim = 2048, ffn_embedding_dim = 12288 /2
         # the model is way worse now, loss goes down way slower
         # fsdp + activation checkpointing + mixed precision: 32768 *8
-
+        # fsdp + mixed precision: 32768*4 tokens is max
 
 
 
         # chinchilla estimate for 150B tokens is ~ 10B params, this is ~10% of Whole genome across 500 genomes
         # 7.5 B tokens is ~ 500M params, ~1% of whole genome across 250 genomes
-        seq_len = int(32768 *16)
+        seq_len = int(32768 *4)
         encoded_sequence = torch.tensor(tokenizer.encode(data[0]).ids, dtype=torch.long).to(rank)[:seq_len]
         encoded_sequence = encoded_sequence.unsqueeze(0)
         print("encoded_sequence", encoded_sequence.shape) # should be torch.Size([1, N])
