@@ -153,6 +153,9 @@ def epoch(model, rank, criterion,
         # fsdp + activation checkpointing + mixed precision: model dim = 8192, 32768 *4
 
         # fix layer number to 5, 32 attention heads, embedding_dim = 4096, ffn_embedding_dim = 12288
+        # same as with 64 heads
+
+        # fix layer number to 5, 16 attention heads, embedding_dim = 2048, ffn_embedding_dim = 12288 /2
 
 
 
