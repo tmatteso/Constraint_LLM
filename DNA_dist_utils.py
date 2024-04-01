@@ -98,16 +98,16 @@ def fsdp_main(rank, world_size, pdb_dir_path, epoch_num, criterion, model, optim
                  sync_module_states=True,
                  sharding_strategy=ShardingStrategy.FULL_SHARD,
                 )
-    # # now we apply an activation checkpoint wrap
-    # non_reentrant_wrapper = functools.partial(
-    # checkpoint_wrapper,
-    # checkpoint_impl=CheckpointImpl.NO_REENTRANT,
-    # )
-    # # Lambda function to check if a submodule is an instance of any layer in the dictionary
-    # check_fn = lambda submodule: any(isinstance(submodule, layer_class) for layer_class in layers)
-    # apply_activation_checkpointing(
-    #     model, checkpoint_wrapper_fn=non_reentrant_wrapper, check_fn=check_fn
-    # )
+    # now we apply an activation checkpoint wrap
+    non_reentrant_wrapper = functools.partial(
+    checkpoint_wrapper,
+    checkpoint_impl=CheckpointImpl.NO_REENTRANT,
+    )
+    # Lambda function to check if a submodule is an instance of any layer in the dictionary
+    check_fn = lambda submodule: any(isinstance(submodule, layer_class) for layer_class in layers)
+    apply_activation_checkpointing(
+        model, checkpoint_wrapper_fn=non_reentrant_wrapper, check_fn=check_fn
+    )
     # now try torch compile -- doesn't play nice with fsdp!
     # model = torch.compile(model, mode="max-autotune")
     use_fsdp = True
@@ -149,8 +149,8 @@ def epoch(model, rank, criterion,
 
         # fix layer number to 5, 64 attention heads, embedding_dim = 4096, ffn_embedding_dim = 12288
         # full precision: model dim = 4096, 32768 tokens is max
-        # fsdp + mixed precision: model dim = 8192, 32768*2 tokens is max
-        # fsdp + activation checkpointing + mixed precision: model dim = 8192, 32768 *4
+        # fsdp + mixed precision: model dim = 4096, 32768*2 tokens is max
+        # fsdp + activation checkpointing + mixed precision: model dim = 4096, 32768 *4
 
         # fix layer number to 5, 32 attention heads, embedding_dim = 4096, ffn_embedding_dim = 12288
         # same as with 64 heads
@@ -159,7 +159,9 @@ def epoch(model, rank, criterion,
         # the model is way worse now, loss goes down way slower
         # fsdp + activation checkpointing + mixed precision: 32768 *8 tokens is max
         # fsdp + mixed precision: 32768*2 tokens is max
-        # full precision: 
+        # full precision: 32768
+
+        # once done with this, you need to check if all this even using flash attention
 
 
 
