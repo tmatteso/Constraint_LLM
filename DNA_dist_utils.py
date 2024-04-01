@@ -142,15 +142,18 @@ def epoch(model, rank, criterion,
     for batch_i, (data) in enumerate(train_loader):
         #print("data", data) # should be str
         # collect data
-        # fix layer number to 5
+        # fix layer number to 5, 64 attention heads, embedding_dim = 8192, ffn_embedding_dim = 24576
         # fsdp + activation checkpointing + mixed precision: model dim = 8192, 65536 tokens is max
         # fsdp + mixed precision: model dim = 8192, 32768 tokens is max
         # full precision: model dim = 8192, 8192 tokens is max
 
-        # with same layer number, but half the model dimension and ffn dimension
+        # fix layer number to 5, 64 attention heads, embedding_dim = 4096, ffn_embedding_dim = 12288
         # full precision: model dim = 4096, 32768 tokens is max
         # fsdp + mixed precision: model dim = 8192, 32768*2 tokens is max
         # fsdp + activation checkpointing + mixed precision: model dim = 8192, 32768 *4
+
+        # fix layer number to 5, 32 attention heads, embedding_dim = 4096, ffn_embedding_dim = 12288
+
 
 
 
