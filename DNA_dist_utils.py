@@ -157,8 +157,9 @@ def epoch(model, rank, criterion,
 
         # fix layer number to 5, 16 attention heads, embedding_dim = 2048, ffn_embedding_dim = 12288 /2
         # the model is way worse now, loss goes down way slower
-        # fsdp + activation checkpointing + mixed precision: 32768 *8
-        # fsdp + mixed precision: 32768*4 tokens is max
+        # fsdp + activation checkpointing + mixed precision: 32768 *8 tokens is max
+        # fsdp + mixed precision: 32768*2 tokens is max
+        # full precision: 
 
 
 
