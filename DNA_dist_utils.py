@@ -142,6 +142,10 @@ def epoch(model, rank, criterion,
     for batch_i, (data) in enumerate(train_loader):
         #print("data", data) # should be str
         # collect data
+
+        # increasing layer number to 10 does not affect memory!!!!
+        # more layers, loss go down faster
+
         # fix layer number to 5, 64 attention heads, embedding_dim = 8192, ffn_embedding_dim = 24576
         # fsdp + activation checkpointing + mixed precision: model dim = 8192, 65536 tokens is max
         # fsdp + mixed precision: model dim = 8192, 32768 tokens is max
@@ -169,7 +173,7 @@ def epoch(model, rank, criterion,
 
         # chinchilla estimate for 150B tokens is ~ 10B params, this is ~10% of Whole genome across 500 genomes
         # 7.5 B tokens is ~ 500M params, ~1% of whole genome across 250 genomes
-        seq_len = int(32768 *2)
+        seq_len = int(8192)
         encoded_sequence = torch.tensor(tokenizer.encode(data[0]).ids, dtype=torch.long).to(rank)[:seq_len]
         encoded_sequence = encoded_sequence.unsqueeze(0)
         print("encoded_sequence", encoded_sequence.shape) # should be torch.Size([1, N])
