@@ -143,8 +143,10 @@ def epoch(model, rank, criterion,
         #print("data", data) # should be str
         # collect data
 
-        # increasing layer number to 10 does not affect memory!!!!
+        # increasing layer number to 10 does not affect memory!!!! for activation checkpointing and fsdp
         # more layers, loss go down faster
+
+        # more layers, does increase memory usage for the non ac, non fsdp case
 
         # fix layer number to 5, 64 attention heads, embedding_dim = 8192, ffn_embedding_dim = 24576
         # fsdp + activation checkpointing + mixed precision: model dim = 8192, 65536 tokens is max
