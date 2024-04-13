@@ -173,6 +173,7 @@ def main():
                       'chrX',
                       'chrY'
                      ]
+    print(1)
     df = read_acceptable_contigs("ENCODEV45_basic.csv", acceptable_contigs)
     print(df)
     clean_exons = explode_contigs(df)
