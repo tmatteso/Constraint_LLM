@@ -35,7 +35,7 @@ def explode_contigs(df):
     clean_exons["end"] = clean_exons["end"].astype(int)
     return clean_exons
 
-def get_promoters_and_enhancers(encodeCcreCombined):
+def get_promoters_and_enhancers(encodeCcreCombined, acceptable_contigs):
     # now get all the enhancers (ENCODE cCREs, VISTA, Zoonomia cCREs), align them with nearest gene 
     bb = pyBigWig.open(encodeCcreCombined) 
 
@@ -178,7 +178,7 @@ def main():
     print(df)
     clean_exons = explode_contigs(df)
     print(clean_exons)
-    all_promoters_and_enhancers = get_promoters_and_enhancers("encodeCcreCombined.bb")
+    all_promoters_and_enhancers = get_promoters_and_enhancers("encodeCcreCombined.bb", acceptable_contigs)
     print(all_promoters_and_enhancers)
     chrom_pe = associate_enhancers(df, all_promoters_and_enhancers, acceptable_contigs)
     print(chrom_pe)
