@@ -174,9 +174,13 @@ def main():
                       'chrY'
                      ]
     df = read_acceptable_contigs("ENCODEV45_basic.csv", acceptable_contigs)
+    print(df)
     clean_exons = explode_contigs(df)
+    print(clean_exons)
     all_promoters_and_enhancers = get_promoters_and_enhancers("encodeCcreCombined.bb")
+    print(all_promoters_and_enhancers)
     chrom_pe = associate_enhancers(df, all_promoters_and_enhancers, acceptable_contigs)
+    print(chrom_pe)
     make_bed_csvs(df, chrom_pe, acceptable_contigs, clean_exons)
     # don't forget to make the transcript_strs dir from command line
     make_transcript_strings("human_transcripts/*")
