@@ -1,5 +1,5 @@
 # create Human Genome dataset strings
-
+import os
 import pandas as pd
 import pyBigWig
 import warnings
@@ -207,8 +207,9 @@ def main():
     print(all_promoters_and_enhancers)
     chrom_pe = associate_enhancers(df, all_promoters_and_enhancers, acceptable_contigs)
     print(chrom_pe)
+    os.mkdir('human_transcripts')
     make_bed_csvs(df, chrom_pe, acceptable_contigs, clean_exons)
-    # don't forget to make the transcript_strs dir from command line
+    os.mkdir('transcript_strs')
     make_transcript_strings("human_transcripts/*")
     
 
