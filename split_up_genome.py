@@ -168,7 +168,8 @@ def make_bed_csvs(df, chrom_pe, acceptable_contigs, clean_exons):
 
     for chrom in acceptable_contigs:
         result_subset = df[df.chrom == chrom]
-        chrom_pe_subset = chrom_pe[acceptable_contigs.index(chrom)]
+        chrom_pe_subset = chrom_pe[chrom_pe.chrom == chrom]
+        #chrom_pe_subset = chrom_pe[acceptable_contigs.index(chrom)]
 
         # Group by 'closest_TSS' to avoid looping through unique entries
         grouped = chrom_pe_subset.groupby('closest_TSS')
