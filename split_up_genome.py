@@ -110,6 +110,8 @@ def associate_enhancers(df, all_promoters_and_enhancers, acceptable_contigs):
     # Initialize an empty DataFrame to store the results
     merged = pd.DataFrame()
 
+
+    # this is definitely not working at all!
     chrom_pe =[]
     with mp.Pool(mp.cpu_count()) as pool:
         chrom_pe = pool.starmap(process_enhancers, [(chrom, df, all_promoters_and_enhancers, acceptable_contigs, chrom_pe) for chrom in acceptable_contigs])
@@ -243,12 +245,17 @@ def main():
                      ]
     print(1)
     df = read_acceptable_contigs("ENCODEV45_basic.csv", acceptable_contigs)
-    print(df)
+    print("ENCODE read in")
     clean_exons = explode_contigs(df)
-    print(clean_exons)
+    # write out the clean exons
+    clean_exons.to_csv("clean_exons.csv")
+    print("clean_exons exported")
     all_promoters_and_enhancers = get_promoters_and_enhancers("encodeCcreCombined.bb", acceptable_contigs)
-    print(all_promoters_and_enhancers)
+    # write out the clean exons
+    clean_exons.to_csv("all_promoters_and_enhancers.csv")
+    print("all_promoters_and_enhancers exported")
     chrom_pe = associate_enhancers(df, all_promoters_and_enhancers, acceptable_contigs)
+    print("enhancers associated to TSS")
     print(chrom_pe)
     # the next two are slow!
     os.mkdir('human_transcripts')
