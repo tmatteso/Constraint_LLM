@@ -121,10 +121,9 @@ def make_bed_csvs(df, chrom_pe, acceptable_contigs, clean_exons):
 
     # Create a pool of workers
     with mp.Pool(mp.cpu_count()) as pool:
-        for chrom in acceptable_contigs: # this was one indent to the left before. 
-            pool.map(process_chrom, chrom, df, chrom_pe, acceptable_contigs, clean_exons, transcript_lens)
+        pool.starmap(process_chrom, [(chrom, df, chrom_pe, acceptable_contigs, clean_exons, transcript_lens) for chrom in acceptable_contigs])
 
-
+    # for chrom in acceptable_contigs:
         # result_subset = df[df.chrom == chrom]
         # chrom_pe_subset = chrom_pe[acceptable_contigs.index(chrom)]
 
