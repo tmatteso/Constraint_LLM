@@ -249,11 +249,17 @@ def main():
     clean_exons = explode_contigs(df)
     # write out the clean exons
     clean_exons.to_csv("clean_exons.csv")
+
+    get_all_promoters_and_enhancers = True
     print("clean_exons exported")
-    all_promoters_and_enhancers = get_promoters_and_enhancers("encodeCcreCombined.bb", acceptable_contigs)
-    # write out the clean exons
-    clean_exons.to_csv("all_promoters_and_enhancers.csv")
-    print("all_promoters_and_enhancers exported")
+    if get_all_promoters_and_enhancers:
+        all_promoters_and_enhancers = get_promoters_and_enhancers("encodeCcreCombined.bb", acceptable_contigs)
+        # write out all_promoters_and_enhancers
+        all_promoters_and_enhancers.to_csv("all_promoters_and_enhancers.csv")
+        print("all_promoters_and_enhancers exported")
+    else:
+        all_promoters_and_enhancers = pd.read_csv("all_promoters_and_enhancers.csv")
+        print("all_promoters_and_enhancers imported")
     chrom_pe = associate_enhancers(df, all_promoters_and_enhancers, acceptable_contigs)
     print("enhancers associated to TSS")
     print(chrom_pe)
