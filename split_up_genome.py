@@ -5,6 +5,7 @@ import pyBigWig
 import warnings
 from pyfaidx import Fasta
 import glob
+import multiprocessing as mp
 
 def read_acceptable_contigs(filename, acceptable_contigs):
     df = pd.read_csv(filename) #"ENCODEV45_basic.csv")
@@ -87,35 +88,66 @@ def associate_enhancers(df, all_promoters_and_enhancers, acceptable_contigs):
     return chrom_pe
 
 
+
+def process_chrom(chrom, df, chrom_pe, acceptable_contigs, clean_exons, transcript_lens):
+    result_subset = df[df.chrom == chrom]
+    chrom_pe_subset = chrom_pe[acceptable_contigs.index(chrom)]
+
+    # Group by 'closest_TSS' to avoid looping through unique entries
+    grouped = chrom_pe_subset.groupby('closest_TSS')
+    print(chrom, grouped.size())
+
+    for entry, group in grouped:
+        corresponding_row = result_subset[result_subset['name'] == entry].iloc[0]
+        name = corresponding_row["name"] + "_" + corresponding_row["name2"]
+
+        exon_subset = clean_exons[clean_exons.name == entry].copy()
+        exon_subset["ENCODE classification"] = "exon"
+
+        transcript_pe_subset = group[["chrom", "start", "end", "ENCODE classification"]]
+        transcript_exon_subset = exon_subset[["chrom", "start", "end", "ENCODE classification"]]
+
+        transcript_bed = pd.concat([transcript_pe_subset, transcript_exon_subset])
+        transcript_bed["transcript_and_name"] = name
+
+        transcript_lens.append((transcript_bed.end - transcript_bed.start).sum())
+
+        transcript_bed.to_csv(f"human_transcripts/{name}.csv")
+
+
 def make_bed_csvs(df, chrom_pe, acceptable_contigs, clean_exons):
     transcript_lens = []
     warnings.filterwarnings('ignore')
 
     for chrom in acceptable_contigs:
+        # Create a pool of workers
+        with mp.Pool(mp.cpu_count()) as pool:
+            pool.map(process_chrom, chrom, df, chrom_pe, acceptable_contigs, clean_exons, transcript_lens)
 
-        result_subset = df[df.chrom == chrom]
-        chrom_pe_subset = chrom_pe[acceptable_contigs.index(chrom)]
 
-        # Group by 'closest_TSS' to avoid looping through unique entries
-        grouped = chrom_pe_subset.groupby('closest_TSS')
-        print(chrom, grouped.size())
+        # result_subset = df[df.chrom == chrom]
+        # chrom_pe_subset = chrom_pe[acceptable_contigs.index(chrom)]
 
-        for entry, group in grouped:
-            corresponding_row = result_subset[result_subset['name'] == entry].iloc[0]
-            name = corresponding_row["name"] + "_" + corresponding_row["name2"]
+        # # Group by 'closest_TSS' to avoid looping through unique entries
+        # grouped = chrom_pe_subset.groupby('closest_TSS')
+        # print(chrom, grouped.size())
 
-            exon_subset = clean_exons[clean_exons.name == entry].copy()
-            exon_subset["ENCODE classification"] = "exon"
+        # for entry, group in grouped:
+        #     corresponding_row = result_subset[result_subset['name'] == entry].iloc[0]
+        #     name = corresponding_row["name"] + "_" + corresponding_row["name2"]
 
-            transcript_pe_subset = group[["chrom", "start", "end", "ENCODE classification"]]
-            transcript_exon_subset = exon_subset[["chrom", "start", "end", "ENCODE classification"]]
+        #     exon_subset = clean_exons[clean_exons.name == entry].copy()
+        #     exon_subset["ENCODE classification"] = "exon"
 
-            transcript_bed = pd.concat([transcript_pe_subset, transcript_exon_subset])
-            transcript_bed["transcript_and_name"] = name
+        #     transcript_pe_subset = group[["chrom", "start", "end", "ENCODE classification"]]
+        #     transcript_exon_subset = exon_subset[["chrom", "start", "end", "ENCODE classification"]]
 
-            transcript_lens.append((transcript_bed.end - transcript_bed.start).sum())
+        #     transcript_bed = pd.concat([transcript_pe_subset, transcript_exon_subset])
+        #     transcript_bed["transcript_and_name"] = name
 
-            transcript_bed.to_csv(f"human_transcripts/{name}.csv")
+        #     transcript_lens.append((transcript_bed.end - transcript_bed.start).sum())
+
+        #     transcript_bed.to_csv(f"human_transcripts/{name}.csv")
 
             
 def extract_sequences(fasta_file, bed_file):
