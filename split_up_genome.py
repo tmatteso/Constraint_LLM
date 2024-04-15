@@ -102,8 +102,8 @@ def process_enhancers(chrom, df, all_promoters_and_enhancers, acceptable_contigs
     df2['closest_TSS'] = df2.apply(lambda row: find_closest(row, df1), axis=1)
     # closest_ls = df2.apply(find_closest, axis=1)#.tolist()
     # df2["closest_TSS"] = closest_ls
-    chrom_pe.append(df2)
-    return chrom_pe
+    # chrom_pe.append(df2)
+    return df2
 
 def associate_enhancers(df, all_promoters_and_enhancers, acceptable_contigs):
     # now we need to associate enhancers to TSS
@@ -116,6 +116,7 @@ def associate_enhancers(df, all_promoters_and_enhancers, acceptable_contigs):
     with mp.Pool(mp.cpu_count()) as pool:
         chrom_pe = pool.starmap(process_enhancers, [(chrom, df, all_promoters_and_enhancers, acceptable_contigs, chrom_pe) for chrom in acceptable_contigs])
     
+    print(chrom_pe)
     chrom_pe = pd.concat(chrom_pe)
     print("finished chrom pe")
 
