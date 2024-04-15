@@ -36,6 +36,25 @@ def explode_contigs(df):
     clean_exons["end"] = clean_exons["end"].astype(int)
     return clean_exons
 
+
+def process_contig(contig, bb):
+    element_list = bb.entries(contig, 0, -1)
+    print(contig, len(element_list))
+    df_list = []
+    for entry in element_list:
+        pe_chrom = pd.DataFrame()
+        pe_chrom["chrom"] = [contig]
+        pe_chrom["start"] = [int(entry[0])]
+        pe_chrom["end"] = [int(entry[1])]
+        element_str = entry[2].split("\t")
+        pe_chrom["strand"] = [element_str[2]]
+        pe_chrom["ENCODE Accession"] = [element_str[0]]
+        pe_chrom["ENCODE classification"] = [element_str[6]]
+        pe_chrom["UCSC label"] = [element_str[-3]]
+        df_list.append(pe_chrom)
+    chrom_df = pd.concat(df_list)
+    return chrom_df
+
 def get_promoters_and_enhancers(encodeCcreCombined, acceptable_contigs):
     # now get all the enhancers (ENCODE cCREs, VISTA, Zoonomia cCREs), align them with nearest gene 
     bb = pyBigWig.open(encodeCcreCombined) 
@@ -43,24 +62,28 @@ def get_promoters_and_enhancers(encodeCcreCombined, acceptable_contigs):
     all_promoters_and_enhancers = []
 
     #promoters_and_enhancers["chrom"] = 
+        # Create a pool of workers
+    with mp.Pool(mp.cpu_count()) as pool:
+        all_promoters_and_enhancers = pool.starmap(process_contig, [(contig, bb) for contig in acceptable_contigs])
 
-    for contig in acceptable_contigs:
-        element_list = bb.entries(contig, 0, -1)
-        print(contig, len(element_list))
-        df_list = []
-        for entry in element_list:
-            pe_chrom = pd.DataFrame()
-            pe_chrom["chrom"] = [contig]
-            pe_chrom["start"] = [int(entry[0])]
-            pe_chrom["end"] = [int(entry[1])]
-            element_str = entry[2].split("\t")
-            pe_chrom["strand"] = [element_str[2]]
-            pe_chrom["ENCODE Accession"] = [element_str[0]]
-            pe_chrom["ENCODE classification"] = [element_str[6]]
-            pe_chrom["UCSC label"] = [element_str[-3]]
-            df_list.append(pe_chrom)
-        chrom_df = pd.concat(df_list)
-        all_promoters_and_enhancers.append(chrom_df)
+
+    # for contig in acceptable_contigs:
+    #     element_list = bb.entries(contig, 0, -1)
+    #     print(contig, len(element_list))
+    #     df_list = []
+    #     for entry in element_list:
+    #         pe_chrom = pd.DataFrame()
+    #         pe_chrom["chrom"] = [contig]
+    #         pe_chrom["start"] = [int(entry[0])]
+    #         pe_chrom["end"] = [int(entry[1])]
+    #         element_str = entry[2].split("\t")
+    #         pe_chrom["strand"] = [element_str[2]]
+    #         pe_chrom["ENCODE Accession"] = [element_str[0]]
+    #         pe_chrom["ENCODE classification"] = [element_str[6]]
+    #         pe_chrom["UCSC label"] = [element_str[-3]]
+    #         df_list.append(pe_chrom)
+    #     chrom_df = pd.concat(df_list)
+    #     all_promoters_and_enhancers.append(chrom_df)
 
     all_promoters_and_enhancers = pd.concat(all_promoters_and_enhancers)
     return all_promoters_and_enhancers
@@ -88,65 +111,34 @@ def associate_enhancers(df, all_promoters_and_enhancers, acceptable_contigs):
     return chrom_pe
 
 
-
-def process_chrom(chrom, df, chrom_pe, acceptable_contigs, clean_exons, transcript_lens):
-    result_subset = df[df.chrom == chrom]
-    chrom_pe_subset = chrom_pe[acceptable_contigs.index(chrom)]
-
-    # Group by 'closest_TSS' to avoid looping through unique entries
-    grouped = chrom_pe_subset.groupby('closest_TSS')
-    print(chrom, grouped.size())
-
-    for entry, group in grouped:
-        corresponding_row = result_subset[result_subset['name'] == entry].iloc[0]
-        name = corresponding_row["name"] + "_" + corresponding_row["name2"]
-
-        exon_subset = clean_exons[clean_exons.name == entry].copy()
-        exon_subset["ENCODE classification"] = "exon"
-
-        transcript_pe_subset = group[["chrom", "start", "end", "ENCODE classification"]]
-        transcript_exon_subset = exon_subset[["chrom", "start", "end", "ENCODE classification"]]
-
-        transcript_bed = pd.concat([transcript_pe_subset, transcript_exon_subset])
-        transcript_bed["transcript_and_name"] = name
-
-        transcript_lens.append((transcript_bed.end - transcript_bed.start).sum())
-
-        transcript_bed.to_csv(f"human_transcripts/{name}.csv")
-
-
 def make_bed_csvs(df, chrom_pe, acceptable_contigs, clean_exons):
     transcript_lens = []
     warnings.filterwarnings('ignore')
 
-    # Create a pool of workers
-    with mp.Pool(mp.cpu_count()) as pool:
-        pool.starmap(process_chrom, [(chrom, df, chrom_pe, acceptable_contigs, clean_exons, transcript_lens) for chrom in acceptable_contigs])
+    for chrom in acceptable_contigs:
+        result_subset = df[df.chrom == chrom]
+        chrom_pe_subset = chrom_pe[acceptable_contigs.index(chrom)]
 
-    # for chrom in acceptable_contigs:
-        # result_subset = df[df.chrom == chrom]
-        # chrom_pe_subset = chrom_pe[acceptable_contigs.index(chrom)]
+        # Group by 'closest_TSS' to avoid looping through unique entries
+        grouped = chrom_pe_subset.groupby('closest_TSS')
+        print(chrom, grouped.size())
 
-        # # Group by 'closest_TSS' to avoid looping through unique entries
-        # grouped = chrom_pe_subset.groupby('closest_TSS')
-        # print(chrom, grouped.size())
+        for entry, group in grouped:
+            corresponding_row = result_subset[result_subset['name'] == entry].iloc[0]
+            name = corresponding_row["name"] + "_" + corresponding_row["name2"]
 
-        # for entry, group in grouped:
-        #     corresponding_row = result_subset[result_subset['name'] == entry].iloc[0]
-        #     name = corresponding_row["name"] + "_" + corresponding_row["name2"]
+            exon_subset = clean_exons[clean_exons.name == entry].copy()
+            exon_subset["ENCODE classification"] = "exon"
 
-        #     exon_subset = clean_exons[clean_exons.name == entry].copy()
-        #     exon_subset["ENCODE classification"] = "exon"
+            transcript_pe_subset = group[["chrom", "start", "end", "ENCODE classification"]]
+            transcript_exon_subset = exon_subset[["chrom", "start", "end", "ENCODE classification"]]
 
-        #     transcript_pe_subset = group[["chrom", "start", "end", "ENCODE classification"]]
-        #     transcript_exon_subset = exon_subset[["chrom", "start", "end", "ENCODE classification"]]
+            transcript_bed = pd.concat([transcript_pe_subset, transcript_exon_subset])
+            transcript_bed["transcript_and_name"] = name
 
-        #     transcript_bed = pd.concat([transcript_pe_subset, transcript_exon_subset])
-        #     transcript_bed["transcript_and_name"] = name
+            transcript_lens.append((transcript_bed.end - transcript_bed.start).sum())
 
-        #     transcript_lens.append((transcript_bed.end - transcript_bed.start).sum())
-
-        #     transcript_bed.to_csv(f"human_transcripts/{name}.csv")
+            transcript_bed.to_csv(f"human_transcripts/{name}.csv")
 
             
 def extract_sequences(fasta_file, bed_file):
