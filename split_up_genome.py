@@ -278,9 +278,9 @@ def main():
         print("chrom_pe imported")
         
     # the next two are slow!
-    os.mkdir('human_transcripts', exist_ok=True)
+    os.makedirs('human_transcripts', exist_ok=True)
     make_bed_csvs(df, chrom_pe, acceptable_contigs, clean_exons)
-    os.mkdir('transcript_strs',  exist_ok=True)
+    os.makedirs('transcript_strs',  exist_ok=True)
     make_transcript_strings("human_transcripts/*")
     
 
