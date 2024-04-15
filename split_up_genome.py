@@ -95,6 +95,7 @@ def find_closest(row, df1):
     return closest_entry
 
 def process_enhancers(chrom, df, all_promoters_and_enhancers, acceptable_contigs, chrom_pe):
+    print(f"enhancers on {chrom}")
     for chrom in acceptable_contigs:
         df1 = df[df.chrom == chrom].sort_values(['chrom', 'txStart'])#[['chrom', 'txStart']]
         df2 = all_promoters_and_enhancers[all_promoters_and_enhancers.chrom == chrom].sort_values(['chrom', 'end'])#[['chrom', 'end']]
@@ -112,7 +113,7 @@ def associate_enhancers(df, all_promoters_and_enhancers, acceptable_contigs):
     chrom_pe =[]
     with mp.Pool(mp.cpu_count()) as pool:
         chrom_pe = pool.starmap(process_enhancers, [(chrom, df, all_promoters_and_enhancers, acceptable_contigs, chrom_pe) for chrom in acceptable_contigs])
-
+    print("finished chrom pe")
 
     # for chrom in acceptable_contigs:
     #     df1 = df[df.chrom == chrom].sort_values(['chrom', 'txStart'])#[['chrom', 'txStart']]
@@ -257,9 +258,10 @@ def main():
     
 
 # Readme for the constraint LLM repo:
-# run download_genome.py to get all the base files
+# run download_genome.py to get all the base files -- this should get the clinvar vcf too
 # run split_up_genome.py to get the TSS bed files and strings
 # run DNA_data.py to BPE tokenize the strings
+# run DNA_eval.py to get clinvar separated and ready for eval (split into coding and noncoding)
 # run DNA_LLM.py to train the model
 # at each desired interval, benchmark against evals
 # for now those evals are the clinvar vcf file
