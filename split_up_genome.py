@@ -96,14 +96,14 @@ def find_closest(row, df1):
 
 def process_enhancers(chrom, df, all_promoters_and_enhancers, acceptable_contigs, chrom_pe):
     print(f"enhancers on {chrom}")
-    for chrom in acceptable_contigs:
-        df1 = df[df.chrom == chrom].sort_values(['chrom', 'txStart'])#[['chrom', 'txStart']]
-        df2 = all_promoters_and_enhancers[all_promoters_and_enhancers.chrom == chrom].sort_values(['chrom', 'end'])#[['chrom', 'end']]
-        #closest_ls = []
-        df2['closest_TSS'] = df2.apply(lambda row: find_closest(row, df1), axis=1)
-        # closest_ls = df2.apply(find_closest, axis=1)#.tolist()
-        # df2["closest_TSS"] = closest_ls
-        chrom_pe.append(df2)
+    df1 = df[df.chrom == chrom].sort_values(['chrom', 'txStart'])#[['chrom', 'txStart']]
+    df2 = all_promoters_and_enhancers[all_promoters_and_enhancers.chrom == chrom].sort_values(['chrom', 'end'])#[['chrom', 'end']]
+    #closest_ls = []
+    df2['closest_TSS'] = df2.apply(lambda row: find_closest(row, df1), axis=1)
+    # closest_ls = df2.apply(find_closest, axis=1)#.tolist()
+    # df2["closest_TSS"] = closest_ls
+    chrom_pe.append(df2)
+    return chrom_pe
 
 def associate_enhancers(df, all_promoters_and_enhancers, acceptable_contigs):
     # now we need to associate enhancers to TSS
@@ -250,7 +250,7 @@ def main():
     # write out the clean exons
     clean_exons.to_csv("clean_exons.csv")
 
-    get_all_promoters_and_enhancers = True
+    get_all_promoters_and_enhancers = False
     print("clean_exons exported")
     if get_all_promoters_and_enhancers:
         all_promoters_and_enhancers = get_promoters_and_enhancers("encodeCcreCombined.bb", acceptable_contigs)
