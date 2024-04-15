@@ -256,7 +256,8 @@ def main():
     clean_exons.to_csv("clean_exons.csv")
 
     get_all_promoters_and_enhancers = False
-    get_associate_enhancers = True
+    get_associate_enhancers = False
+
     print("clean_exons exported")
     if get_all_promoters_and_enhancers:
         all_promoters_and_enhancers = get_promoters_and_enhancers("encodeCcreCombined.bb", acceptable_contigs)
@@ -275,10 +276,11 @@ def main():
     else:
         chrom_pe = pd.read_csv("chrom_pe.csv")
         print("chrom_pe imported")
+        
     # the next two are slow!
-    os.mkdir('human_transcripts')
+    os.mkdir('human_transcripts', exist_ok=True)
     make_bed_csvs(df, chrom_pe, acceptable_contigs, clean_exons)
-    os.mkdir('transcript_strs')
+    os.mkdir('transcript_strs',  exist_ok=True)
     make_transcript_strings("human_transcripts/*")
     
 
