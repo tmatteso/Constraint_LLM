@@ -111,7 +111,7 @@ def associate_enhancers(df, all_promoters_and_enhancers, acceptable_contigs):
 
     chrom_pe =[]
     with mp.Pool(mp.cpu_count()) as pool:
-        chrom_pe = pool.starmap(process_contig, [(chrom, df, all_promoters_and_enhancers, acceptable_contigs, chrom_pe) for chrom in acceptable_contigs])
+        chrom_pe = pool.starmap(process_enhancers, [(chrom, df, all_promoters_and_enhancers, acceptable_contigs, chrom_pe) for chrom in acceptable_contigs])
 
 
     # for chrom in acceptable_contigs:
@@ -255,6 +255,15 @@ def main():
     os.mkdir('transcript_strs')
     make_transcript_strings("human_transcripts/*")
     
+
+# Readme for the constraint LLM repo:
+# run download_genome.py to get all the base files
+# run split_up_genome.py to get the TSS bed files and strings
+# run DNA_data.py to BPE tokenize the strings
+# run DNA_LLM.py to train the model
+# at each desired interval, benchmark against evals
+# for now those evals are the clinvar vcf file
+# but will be the GWAS and atacQTLs later
 
 
 if __name__ == "__main__":
