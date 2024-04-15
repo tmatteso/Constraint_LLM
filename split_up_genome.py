@@ -115,6 +115,8 @@ def associate_enhancers(df, all_promoters_and_enhancers, acceptable_contigs):
     chrom_pe =[]
     with mp.Pool(mp.cpu_count()) as pool:
         chrom_pe = pool.starmap(process_enhancers, [(chrom, df, all_promoters_and_enhancers, acceptable_contigs, chrom_pe) for chrom in acceptable_contigs])
+    
+    chrom_pe = pd.concat(chrom_pe)
     print("finished chrom pe")
 
     # for chrom in acceptable_contigs:
@@ -130,7 +132,9 @@ def associate_enhancers(df, all_promoters_and_enhancers, acceptable_contigs):
 
 def process_chrom(chrom, df, chrom_pe, acceptable_contigs, clean_exons, transcript_lens):
     result_subset = df[df.chrom == chrom]
-    chrom_pe_subset = chrom_pe[acceptable_contigs.index(chrom)]
+    # just change this to accept chrom_pe as one big df
+    chrom_pe_subset = chrom_pe[chrom_pe.chrom == chrom]
+    #chrom_pe_subset = chrom_pe[acceptable_contigs.index(chrom)]
 
     # Group by 'closest_TSS' to avoid looping through unique entries
     grouped = chrom_pe_subset.groupby('closest_TSS')
@@ -261,6 +265,8 @@ def main():
     else:
         all_promoters_and_enhancers = pd.read_csv("all_promoters_and_enhancers.csv")
         print("all_promoters_and_enhancers imported")
+
+
     if get_associate_enhancers:
         chrom_pe = associate_enhancers(df, all_promoters_and_enhancers, acceptable_contigs)
         chrom_pe.to_csv("chrom_pe.csv")
