@@ -119,9 +119,9 @@ def make_bed_csvs(df, chrom_pe, acceptable_contigs, clean_exons):
     transcript_lens = []
     warnings.filterwarnings('ignore')
 
-    for chrom in acceptable_contigs:
-        # Create a pool of workers
-        with mp.Pool(mp.cpu_count()) as pool:
+    # Create a pool of workers
+    with mp.Pool(mp.cpu_count()) as pool:
+        for chrom in acceptable_contigs: # this was one indent to the left before. 
             pool.map(process_chrom, chrom, df, chrom_pe, acceptable_contigs, clean_exons, transcript_lens)
 
 
