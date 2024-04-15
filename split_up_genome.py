@@ -37,7 +37,8 @@ def explode_contigs(df):
     return clean_exons
 
 
-def process_contig(contig, bb):
+def process_contig(contig, encodeCcreCombined):
+    bb = pyBigWig.open(encodeCcreCombined) 
     element_list = bb.entries(contig, 0, -1)
     print(contig, len(element_list))
     df_list = []
@@ -57,14 +58,14 @@ def process_contig(contig, bb):
 
 def get_promoters_and_enhancers(encodeCcreCombined, acceptable_contigs):
     # now get all the enhancers (ENCODE cCREs, VISTA, Zoonomia cCREs), align them with nearest gene 
-    bb = pyBigWig.open(encodeCcreCombined) 
+    
 
     all_promoters_and_enhancers = []
 
     #promoters_and_enhancers["chrom"] = 
         # Create a pool of workers
     with mp.Pool(mp.cpu_count()) as pool:
-        all_promoters_and_enhancers = pool.starmap(process_contig, [(contig, bb) for contig in acceptable_contigs])
+        all_promoters_and_enhancers = pool.starmap(process_contig, [(contig, encodeCcreCombined) for contig in acceptable_contigs])
 
 
     # for contig in acceptable_contigs:
