@@ -64,7 +64,7 @@ def get_promoters_and_enhancers(encodeCcreCombined, acceptable_contigs):
     all_promoters_and_enhancers = pd.concat(all_promoters_and_enhancers)
     return all_promoters_and_enhancers
 
-def find_closest(row):
+def find_closest(row, df1):
     df1['diff'] = abs(df1['txStart'] - row.end)
     closest_entry = df1.nsmallest(1, 'diff').name.values[0]
     return closest_entry
@@ -80,8 +80,9 @@ def associate_enhancers(df, all_promoters_and_enhancers, acceptable_contigs):
         df1 = df[df.chrom == chrom].sort_values(['chrom', 'txStart'])#[['chrom', 'txStart']]
         df2 = all_promoters_and_enhancers[all_promoters_and_enhancers.chrom == chrom].sort_values(['chrom', 'end'])#[['chrom', 'end']]
         #closest_ls = []
-        closest_ls = df2.apply(find_closest, axis=1)#.tolist()
-        df2["closest_TSS"] = closest_ls
+        df2['closest_TSS'] = df2.apply(lambda row: find_closest(row, df1), axis=1)
+        # closest_ls = df2.apply(find_closest, axis=1)#.tolist()
+        # df2["closest_TSS"] = closest_ls
         chrom_pe.append(df2)
     return chrom_pe
 
