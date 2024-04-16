@@ -32,14 +32,43 @@ def process_fasta_file(file_path):
 # process_fasta_file("hg38.fa") # validated these fasta are reasonable
 # raise Error
 # let's train a byte pair encoder on chromosome 1
+            
 
-def train_bpe_tokenizer(file_path, vocab_size=30000, chunk_size=10000):
+# rewrite the BPE for your transcripts
+from tokenizers import ByteLevelBPETokenizer
+from tokenizers.trainers import BpeTrainer
+from tokenizers.pre_tokenizers import Whitespace
+
+def train_tokenizer(dir_path, vocab_size=30000):
+    # Initialize a tokenizer
+    tokenizer = ByteLevelBPETokenizer()
+
+    # Customize pre-tokenization
+    tokenizer.pre_tokenizer = Whitespace()
+
+    # Get list of paths to text files
+    file_paths = [os.path.join(dir_path, f) for f in os.listdir(dir_path) if f.endswith('.txt')]
+
+    # Train the tokenizer
+    tokenizer.train(files=file_paths, 
+                    vocab_size=vocab_size, 
+                    #min_frequency=2, 
+                    special_tokens=["<PAD>", "<UNK>", "<BOS>", "<EOS>"], 
+                    show_progress=True)
+
+    return tokenizer
+
+def train_bpe_tokenizer(dir_path, vocab_size=30000, chunk_size=10000):
     # Initialize a tokenizer with Byte-Level BPE
     tokenizer = Tokenizer(models.BPE())
 
     # Use byte-level processing as pre-tokenizer
     tokenizer.pre_tokenizer = pre_tokenizers.ByteLevel()
     tokenizer.decoder = decoders.ByteLevel()
+
+    # Get list of paths to text files
+    file_paths = [os.path.join(dir_path, f) for f in os.listdir(dir_path) if f.endswith('.txt')]
+
 
     # Initialize a trainer with byte-level and custom parameters
     trainer = trainers.BpeTrainer(vocab_size=vocab_size, 
@@ -95,9 +124,12 @@ class DNA_dataset(torch.utils.data.Dataset):
         return len(self.dna_files)
     
 # Usage:
+    
 chunk_file('human_genome_contigs/chr1.fasta', 'chr1_chunks',)#chunk_size=2048)
 # 112540 chunks @ 2048
             
+tokenizer = train_tokenizer("transcript_strs")
+tokenizer.save("transcript_tokenizer.json")
 # Usage:
 #tokenizer = train_bpe_tokenizer("human_genome_contigs/chr1.fasta")
 # save it 
