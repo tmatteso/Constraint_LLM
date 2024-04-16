@@ -128,15 +128,16 @@ class DNA_dataset(torch.utils.data.Dataset):
 #chunk_file('human_genome_contigs/chr1.fasta', 'chr1_chunks',)#chunk_size=2048)
 # 112540 chunks @ 2048
             
-tokenizer = train_tokenizer("transcript_strs")
-tokenizer.save("transcript_tokenizer.json")
+# tokenizer = train_tokenizer("transcript_strs")
+# tokenizer.save("transcript_tokenizer.json")
 # Usage:
 #tokenizer = train_bpe_tokenizer("human_genome_contigs/chr1.fasta")
 # save it 
 #tokenizer.save("chr1_tokenizer.json")
 # reload it
 # tokenizer = Tokenizer.from_file("chr1_tokenizer.json")
+tokenizer = Tokenizer.from_file("transcript_tokenizer.json")
 # #print(tokenizer.get_vocab())
 # # Encode the sequence
-# sequence = "ATGCTGCTGGGGGATCGCTGCACGTACTCGACCGGGGGCTTTACGAAAAAAAAGATCGGCTTTTTTTTTTAATGCGTCCCCATATA"
-# encoded_sequence = tokenizer.encode(sequence)
+sequence = "ATGCTGCTGGGGGATCGCTGCACGTACTCGACCGGGGGCTTTACGAAAAAAAAGATCGGCTTTTTTTTTTAATGCGTCCCCATATA"
+encoded_sequence = tokenizer.encode(sequence)
