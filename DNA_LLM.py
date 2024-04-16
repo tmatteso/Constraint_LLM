@@ -190,11 +190,12 @@ def main():
     WORLD_SIZE = torch.cuda.device_count()
 
     tokenizer = Tokenizer.from_file("transcript_tokenizer.json")#"chr1_tokenizer.json")
+    print("tokenizer loaded")
     # you need to add all the special tokens to tokenizer
     special_tokens = ['<PAD>', '<MASK>', '<CLS>', '<EOS>']
     num_added_toks = tokenizer.add_tokens(special_tokens)
 
-    #print((tokenizer.get_vocab_size())) # 30,002
+    print((tokenizer.get_vocab_size())) # 30,002
 
     # you could still do flash attention with Rotary Encoding, you would just need to SDPA directly
     # that would expose the heads to do it 
