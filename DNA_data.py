@@ -141,3 +141,4 @@ tokenizer = Tokenizer.from_file("transcript_tokenizer.json")
 # # Encode the sequence
 sequence = "ATGCTGCTGGGGGATCGCTGCACGTACTCGACCGGGGGCTTTACGAAAAAAAAGATCGGCTTTTTTTTTTAATGCGTCCCCATATA"
 encoded_sequence = tokenizer.encode(sequence)
+print(encoded_sequence)
