@@ -137,8 +137,9 @@ class DNA_dataset(torch.utils.data.Dataset):
 # reload it
 # tokenizer = Tokenizer.from_file("chr1_tokenizer.json")
 tokenizer = Tokenizer.from_file("transcript_tokenizer.json")
-# #print(tokenizer.get_vocab())
+print(tokenizer.get_vocab())
 # # Encode the sequence
 sequence = "ATGCTGCTGGGGGATCGCTGCACGTACTCGACCGGGGGCTTTACGAAAAAAAAGATCGGCTTTTTTTTTTAATGCGTCCCCATATA"
 encoded_sequence = tokenizer.encode(sequence)
+print(len(sequence))
 print(encoded_sequence)
