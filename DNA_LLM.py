@@ -78,11 +78,13 @@ class RobertaLMHead(nn.Module):
 
 # whole model
 class ConstraintBertModel(nn.Module):
-    def __init__(self, tokenizer, encoder_layers = 20, 
-                 #embedding_dim = 1024, ffn_embedding_dim = 5120,  
-                embedding_dim = 8192, ffn_embedding_dim = 24576,
+    def __init__(self, tokenizer, encoder_layers = 5, 
+                 embedding_dim = 1024, ffn_embedding_dim = 5120,  
+                #embedding_dim = 8192, ffn_embedding_dim = 24576,
                  #embedding_dim = 2048, ffn_embedding_dim = 6144,
-                 head_num = 64, dropout=0.1):
+                 #head_num = 64,
+                 head_num = 16, 
+                 dropout=0.1):
         super().__init__()
         self.encoder_layers = encoder_layers
         self.embedding_dim = embedding_dim
@@ -184,10 +186,10 @@ def main():
     
     epoch_num = 1
     use_wandb = False
-    multi_GPU = True
+    multi_GPU = False
     WORLD_SIZE = torch.cuda.device_count()
 
-    tokenizer = Tokenizer.from_file("chr1_tokenizer.json")
+    tokenizer = Tokenizer.from_file("transcript_tokenizer.json")#"chr1_tokenizer.json")
     # you need to add all the special tokens to tokenizer
     special_tokens = ['<PAD>', '<MASK>', '<CLS>', '<EOS>']
     num_added_toks = tokenizer.add_tokens(special_tokens)
