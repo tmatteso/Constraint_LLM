@@ -3,6 +3,8 @@ from torch import nn
 import wandb
 import os
 import functools
+from tqdm import tqdm
+
 import torch.distributed as dist
 import torch.multiprocessing as mp
 from torch.nn.parallel import DistributedDataParallel as DDP
@@ -201,7 +203,7 @@ def epoch(model, rank, criterion,
         optim.step()
         optim.zero_grad(set_to_none=True)
 
-        if batch_i > 12:
+        if batch_i > 1000:
             print(f"train loss: {total_loss/(batch_i+1)}")
             break
 
@@ -274,6 +276,8 @@ def single_GPU_main(train_path, val_path, epoch_num, model, optim, criterion, us
     rank = 0 # cuda device zero
     world_size = 1
     model = model.to(rank)
+    # check if bf16
+    print(next(model.parameters()).dtype)
 
     dataset1 = DNA_dataset(train_path)
     sampler1 = torch.utils.data.RandomSampler(dataset1)
@@ -314,7 +318,8 @@ def single_GPU_main(train_path, val_path, epoch_num, model, optim, criterion, us
 
         # save a model checkpoint
         torch.save(model.state_dict(), f'model_checkpoint_{e}.pth')
-            
+        print(f"model saved at model_checkpoint_{e}.pth")
+
         # I want a validation loss check here. Given 70,000 samples, let's hold out 1000 randomly
         val_loss = validate(validation_loader, model, criterion, tokenizer, rank)
         # Check if the validation loss has decreased
@@ -336,7 +341,7 @@ def validate(validation_loader, model, criterion, tokenizer, rank):
     val_loss = 0
     model.eval()  # Set the model to evaluation mode
     with torch.no_grad():  # Disable gradient calculations
-        for batch_i, (data) in enumerate(validation_loader):
+        for batch_i, (data) in tqdm(enumerate(validation_loader)):
             encoded_sequence = torch.tensor(tokenizer.encode(data[0]).ids, dtype=torch.long).to(rank)#[:seq_len]
             encoded_sequence = encoded_sequence.unsqueeze(0)
             #print("encoded_sequence", encoded_sequence.shape) # should be torch.Size([1, N])
@@ -347,12 +352,13 @@ def validate(validation_loader, model, criterion, tokenizer, rank):
             logits = logits.permute(0, 2, 1)
             # so labels need to be torch.Size([1, N, vocab_size])
             loss = criterion(logits, encoded_sequence)
-            print(loss)
+            #print(loss)
             val_loss += loss.item()  # Accumulate the loss
 
-    # Calculate the average validation loss
-    val_loss /= len(validation_loader)
+        if batch_i == 20:
+            # Calculate the average validation loss
+            val_loss /= len(validation_loader)
 
-    print(f'Validation loss: {val_loss}')
-    return val_loss
+            print(f'Validation loss: {val_loss}')
+            return val_loss
 
