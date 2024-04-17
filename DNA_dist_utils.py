@@ -341,7 +341,7 @@ def validate(validation_loader, model, criterion, tokenizer, rank):
     val_loss = 0
     model.eval()  # Set the model to evaluation mode
     with torch.no_grad():  # Disable gradient calculations
-        for batch_i, (data) in tqdm(enumerate(validation_loader)):
+        for batch_i, (data) in (enumerate(validation_loader)):
             encoded_sequence = torch.tensor(tokenizer.encode(data[0]).ids, dtype=torch.long).to(rank)#[:seq_len]
             encoded_sequence = encoded_sequence.unsqueeze(0)
             #print("encoded_sequence", encoded_sequence.shape) # should be torch.Size([1, N])
@@ -355,10 +355,10 @@ def validate(validation_loader, model, criterion, tokenizer, rank):
             #print(loss)
             val_loss += loss.item()  # Accumulate the loss
 
-        if batch_i == 20:
-            # Calculate the average validation loss
-            val_loss /= len(validation_loader)
+            if batch_i == 20:
+                # Calculate the average validation loss
+                val_loss /= len(validation_loader)
 
-            print(f'Validation loss: {val_loss}')
-            return val_loss
+                print(f'Validation loss: {val_loss}')
+                return val_loss
 
