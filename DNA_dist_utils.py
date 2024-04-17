@@ -198,9 +198,11 @@ def epoch(model, rank, criterion,
         loss = loss / accumulation_steps
         loss.backward()
         total_loss += loss.item()
+        optim.step()
+        optim.zero_grad(set_to_none=True)
 
         if batch_i > 12:
-            print(f"train loss: {total_loss}")
+            print(f"train loss: {total_loss/(batch_i+1)}")
             break
 
 
@@ -232,16 +234,16 @@ def epoch(model, rank, criterion,
         if len(model_names) != 0 and use_wandb:
             wandb.log({f"gradients/{name}_{stat}": grad_dict[f"gradients/{name}_{stat}"] for name in model_names for stat in [ "near_zero_fraction"]}) #"mean", "std",]})
 
-        accumulation_counter += 1
-        if accumulation_counter % accumulation_steps == 0 or (batch_i + 1 == len(train_loader)):
-            # Clip gradients
-            #torch.nn.utils.clip_grad_norm_(model.parameters(), 0.1)
-            #print("step taken")
-            optim.step()
-            optim.zero_grad(set_to_none=True)
-            if rank == 0:
-                print(f"epoch: {epoch_num}, loss: {loss}, global_batch_size: {accumulation_steps*world_size}",
-                       flush=True)
+        # accumulation_counter += 1
+        # if accumulation_counter % accumulation_steps == 0 or (batch_i + 1 == len(train_loader)):
+        #     # Clip gradients
+        #     #torch.nn.utils.clip_grad_norm_(model.parameters(), 0.1)
+        #     #print("step taken")
+        #     optim.step()
+        #     optim.zero_grad(set_to_none=True)
+        #     if rank == 0:
+        #         print(f"epoch: {epoch_num}, loss: {loss}, global_batch_size: {accumulation_steps*world_size}",
+        #                flush=True)
                 
         if use_wandb:
             # track the activations via stats and histogram over time
