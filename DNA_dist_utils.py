@@ -183,7 +183,9 @@ def epoch(model, rank, criterion,
         #print("encoded_sequence", encoded_sequence.shape) # should be torch.Size([1, N])
         # it wants logits to be torch.Size([1, vocab_size]) for CE loss
         # feed it through the model forward
-
+        if len(data[0]) > 100000:
+            print(batch_i, len(data[0]))
+            continue
 
         with autocast(dtype=torch.bfloat16):
             encoded_sequence = torch.tensor(tokenizer.encode(data[0]).ids, dtype=torch.long).to(rank) #[:seq_len]
