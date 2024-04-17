@@ -195,7 +195,7 @@ def epoch(model, rank, criterion,
         loss = criterion(logits, encoded_sequence)
         print(loss)
         # normalize loss to account for batch accumulation
-        loss = loss / accumulation_steps
+        #loss = loss / accumulation_steps
         loss.backward()
         total_loss += loss.item()
         optim.step()
