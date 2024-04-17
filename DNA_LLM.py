@@ -204,7 +204,7 @@ def main():
     # need to init the model
     model = ConstraintBertModel(tokenizer)
     #print([param for param in model.parameters()])
-    optimizer = torch.optim.Adam(model.parameters(), lr=5e-5)
+    optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)# lr=5e-5)
     #print("hi", (optimizer))
     # may want a scheduler later
     #scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1.0, gamma=0.95)

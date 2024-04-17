@@ -198,6 +198,13 @@ def epoch(model, rank, criterion,
         loss = loss / accumulation_steps
         loss.backward()
         total_loss += loss.item()
+
+        if batch_i > 8:
+            print(f"train loss: {total_loss/batch_i +1}")
+            break
+
+
+
         # catch gradients for wandb tracking
         # this probably works for single GPU too
         model_names = []
@@ -301,7 +308,10 @@ def single_GPU_main(train_path, val_path, epoch_num, model, optim, criterion, us
         epoch(model, rank, criterion,
                world_size, train_loader, use_wandb,
                optim, e, use_fsdp, tokenizer)
+        
+
         # save a model checkpoint
+        torch.save(model.state_dict(), f'model_checkpoint_{e}.pth')
             
         # I want a validation loss check here. Given 70,000 samples, let's hold out 1000 randomly
         val_loss = validate(validation_loader, model, criterion, tokenizer, rank)
