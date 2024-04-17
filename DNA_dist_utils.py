@@ -199,8 +199,8 @@ def epoch(model, rank, criterion,
         loss.backward()
         total_loss += loss.item()
 
-        if batch_i > 8:
-            print(f"train loss: {total_loss/((batch_i +1)*accumulation_steps)}")
+        if batch_i > 12:
+            print(f"train loss: {total_loss}")
             break
 
 
