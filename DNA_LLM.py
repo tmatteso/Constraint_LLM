@@ -171,7 +171,7 @@ class ConstraintBertModel(nn.Module):
 
 # need an arg parser   
 def get_args(parser):
-    parser.add_argument("--chunk-dir", required = True, help = "dir where chr chunks are")# directory")
+    parser.add_argument("--chunk-dir", required = False, help = "dir where chr chunks are")# directory")
     parser.add_argument("--epoch", default = 2, type = int, help = "Number of epochs")
     # need more args
     return parser
