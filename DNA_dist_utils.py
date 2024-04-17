@@ -199,7 +199,7 @@ def epoch(model, rank, criterion,
             # compute the loss
             # what is true here?
             loss = criterion(logits, encoded_sequence)
-            print(loss)
+            #print(loss)
             print(len(data[0]), encoded_sequence.shape)
         # normalize loss to account for batch accumulation
         #loss = loss / accumulation_steps
