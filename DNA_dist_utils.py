@@ -203,7 +203,7 @@ def epoch(model, rank, criterion,
         optim.step()
         optim.zero_grad(set_to_none=True)
 
-        if batch_i > 1000:
+        if batch_i == 20:
             print(f"train loss: {total_loss/(batch_i+1)}")
             break
 
