@@ -200,7 +200,7 @@ def epoch(model, rank, criterion,
         total_loss += loss.item()
 
         if batch_i > 8:
-            print(f"train loss: {total_loss/batch_i +1}")
+            print(f"train loss: {total_loss/((batch_i +1)*accumulation_steps)}")
             break
 
 
@@ -319,7 +319,7 @@ def single_GPU_main(train_path, val_path, epoch_num, model, optim, criterion, us
         if val_loss < best_val_loss:
             best_val_loss = val_loss
             epochs_no_improve = 0
-            best_epoch = e.copy()
+            best_epoch = e
         else:
             epochs_no_improve += 1
             # Check if the validation loss has not decreased for 5 epochs
@@ -345,6 +345,7 @@ def validate(validation_loader, model, criterion, tokenizer, rank):
             logits = logits.permute(0, 2, 1)
             # so labels need to be torch.Size([1, N, vocab_size])
             loss = criterion(logits, encoded_sequence)
+            print(loss)
             val_loss += loss.item()  # Accumulate the loss
 
     # Calculate the average validation loss
