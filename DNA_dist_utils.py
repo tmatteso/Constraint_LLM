@@ -142,7 +142,7 @@ def epoch(model, rank, criterion,
     accumulation_counter = 0
     total_loss = 0 
 
-    with autocast(device_type='cuda', dtype=torch.float16)
+    with autocast(device_type='cuda', dtype=torch.bfloat16):
         for batch_i, (data) in enumerate(train_loader):
             #print("data", data) # should be str
             # collect data
