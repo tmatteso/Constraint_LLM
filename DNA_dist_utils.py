@@ -266,6 +266,8 @@ def single_GPU_main(pdb_dir_path, epoch_num, model, optim, criterion, use_wandb,
     world_size = 1
     model = model.to(rank)
 
+    train_path, val_path = 
+
     dataset1 = DNA_dataset(pdb_dir_path)
     sampler1 = torch.utils.data.RandomSampler(dataset1)
     train_loader = torch.utils.data.DataLoader(
@@ -277,6 +279,18 @@ def single_GPU_main(pdb_dir_path, epoch_num, model, optim, criterion, use_wandb,
                                                 sampler=sampler1,
                                                 #drop_last=True
                                                 )
+    
+    dataset2 = DNA_dataset()
+    sampler2 = torch.utils.data.RandomSampler(dataset2)
+    train_loader = torch.utils.data.DataLoader(
+                                                dataset2,
+                                                #collate_fn=collate_fn,
+                                                batch_size=1,
+                                                shuffle=False, 
+                                                pin_memory=True,
+                                                sampler=sampler2,
+                                                #drop_last=True
+                                                )
     use_fsdp = False
 
     for e in range(epoch_num):
@@ -284,3 +298,4 @@ def single_GPU_main(pdb_dir_path, epoch_num, model, optim, criterion, use_wandb,
             epoch(model, rank, criterion,
                world_size, train_loader, use_wandb,
                optim, e, use_fsdp, tokenizer)
+            # I want a validation loss check here. Given 70,000 samples, let's hold out 1000 randomly
