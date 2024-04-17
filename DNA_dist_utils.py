@@ -178,16 +178,16 @@ def epoch(model, rank, criterion,
 
         # chinchilla estimate for 150B tokens is ~ 10B params, this is ~10% of Whole genome across 500 genomes
         # 7.5 B tokens is ~ 500M params, ~1% of whole genome across 250 genomes
-        seq_len = int(8192 *8)
-        encoded_sequence = torch.tensor(tokenizer.encode(data[0]).ids, dtype=torch.long).to(rank).bfloat16() #[:seq_len]
-        print(len(data[0]), encoded_sequence.shape)
-        encoded_sequence = encoded_sequence.unsqueeze(0)
+        #seq_len = int(8192 *8)
+
         #print("encoded_sequence", encoded_sequence.shape) # should be torch.Size([1, N])
         # it wants logits to be torch.Size([1, vocab_size]) for CE loss
         # feed it through the model forward
 
 
         with autocast(dtype=torch.bfloat16):
+            encoded_sequence = torch.tensor(tokenizer.encode(data[0]).ids, dtype=torch.long).to(rank).bfloat16() #[:seq_len]
+            encoded_sequence = encoded_sequence.unsqueeze(0)
             output = model.forward(encoded_sequence)
             logits, embeddings = output["logits"], output["embeddings"]
             logits = logits.permute(0, 2, 1)
@@ -200,6 +200,7 @@ def epoch(model, rank, criterion,
             # what is true here?
             loss = criterion(logits, encoded_sequence)
             print(loss)
+            print(len(data[0]), encoded_sequence.shape)
         # normalize loss to account for batch accumulation
         #loss = loss / accumulation_steps
         loss.backward()
@@ -350,12 +351,12 @@ def validate(validation_loader, model, criterion, tokenizer, rank):
 
     with torch.no_grad():  # Disable gradient calculations
         for batch_i, (data) in (enumerate(validation_loader)):
-            encoded_sequence = torch.tensor(tokenizer.encode(data[0]).ids, dtype=torch.long).to(rank)#[:seq_len]
-            encoded_sequence = encoded_sequence.unsqueeze(0)
             #print("encoded_sequence", encoded_sequence.shape) # should be torch.Size([1, N])
             # it wants logits to be torch.Size([1, vocab_size]) for CE loss
             # feed it through the model forward
             with autocast(dtype=torch.bfloat16):
+                encoded_sequence = torch.tensor(tokenizer.encode(data[0]).ids, dtype=torch.long).to(rank)#[:seq_len]
+                encoded_sequence = encoded_sequence.unsqueeze(0)
                 output = model.forward(encoded_sequence)
                 logits, embeddings = output["logits"], output["embeddings"]
                 logits = logits.permute(0, 2, 1)
