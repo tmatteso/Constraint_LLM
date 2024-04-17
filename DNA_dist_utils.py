@@ -4,6 +4,7 @@ import wandb
 import os
 import functools
 from tqdm import tqdm
+from torch.cuda.amp import autocast
 
 import torch.distributed as dist
 import torch.multiprocessing as mp
@@ -141,135 +142,136 @@ def epoch(model, rank, criterion,
     accumulation_counter = 0
     total_loss = 0 
 
-    for batch_i, (data) in enumerate(train_loader):
-        #print("data", data) # should be str
-        # collect data
+    with autocast(device_type='cuda', dtype=torch.float16)
+        for batch_i, (data) in enumerate(train_loader):
+            #print("data", data) # should be str
+            # collect data
 
-        # increasing layer number to 10 does not affect memory!!!! for activation checkpointing and fsdp
-        # more layers, loss go down faster
+            # increasing layer number to 10 does not affect memory!!!! for activation checkpointing and fsdp
+            # more layers, loss go down faster
 
-        # more layers, does increase memory usage for the non ac, non fsdp case
+            # more layers, does increase memory usage for the non ac, non fsdp case
 
-        # fix layer number to 5, 64 attention heads, embedding_dim = 8192, ffn_embedding_dim = 24576
-        # fsdp + activation checkpointing + mixed precision: model dim = 8192, 65536 tokens is max
-        # fsdp + mixed precision: model dim = 8192, 32768 tokens is max
-        # full precision: model dim = 8192, 8192 tokens is max
-        # having the model dim so high makes the loss go down muchhhhhhhhhh faster
-
-
-        # fix layer number to 5, 64 attention heads, embedding_dim = 4096, ffn_embedding_dim = 12288
-        # full precision: model dim = 4096, 32768 tokens is max
-        # fsdp + mixed precision: model dim = 4096, 32768*2 tokens is max
-        # fsdp + activation checkpointing + mixed precision: model dim = 4096, 32768 *4
-
-        # fix layer number to 5, 32 attention heads, embedding_dim = 4096, ffn_embedding_dim = 12288
-        # same as with 64 heads
-
-        # fix layer number to 5, 16 attention heads, embedding_dim = 2048, ffn_embedding_dim = 12288 /2
-        # the model is way worse now, loss goes down way slower
-        # fsdp + activation checkpointing + mixed precision: 32768 *8 tokens is max
-        # fsdp + mixed precision: 32768*2 tokens is max
-        # full precision: 32768 tokens is max
-
-        # once done with this, you need to check if all this even using flash attention
+            # fix layer number to 5, 64 attention heads, embedding_dim = 8192, ffn_embedding_dim = 24576
+            # fsdp + activation checkpointing + mixed precision: model dim = 8192, 65536 tokens is max
+            # fsdp + mixed precision: model dim = 8192, 32768 tokens is max
+            # full precision: model dim = 8192, 8192 tokens is max
+            # having the model dim so high makes the loss go down muchhhhhhhhhh faster
 
 
+            # fix layer number to 5, 64 attention heads, embedding_dim = 4096, ffn_embedding_dim = 12288
+            # full precision: model dim = 4096, 32768 tokens is max
+            # fsdp + mixed precision: model dim = 4096, 32768*2 tokens is max
+            # fsdp + activation checkpointing + mixed precision: model dim = 4096, 32768 *4
 
-        # chinchilla estimate for 150B tokens is ~ 10B params, this is ~10% of Whole genome across 500 genomes
-        # 7.5 B tokens is ~ 500M params, ~1% of whole genome across 250 genomes
-        seq_len = int(8192 *8)
-        encoded_sequence = torch.tensor(tokenizer.encode(data[0]).ids, dtype=torch.long).to(rank).bfloat16() #[:seq_len]
-        print(len(data[0]), encoded_sequence.shape)
-        encoded_sequence = encoded_sequence.unsqueeze(0)
-        #print("encoded_sequence", encoded_sequence.shape) # should be torch.Size([1, N])
-        # it wants logits to be torch.Size([1, vocab_size]) for CE loss
-        # feed it through the model forward
-        output = model.forward(encoded_sequence)
-        logits, embeddings = output["logits"], output["embeddings"]
-        logits = logits.permute(0, 2, 1)
-        # so labels need to be torch.Size([1, N, vocab_size])
-        #vocab_size = tokenizer.get_vocab_size()  # Get the size of the vocabulary
-        #labels = F.one_hot(encoded_sequence, num_classes=vocab_size)
-        #print("encoded_sequence", encoded_sequence.shape)
-        #print("labels", labels.shape)
-        # compute the loss
-        # what is true here?
-        loss = criterion(logits, encoded_sequence)
-        print(loss)
-        # normalize loss to account for batch accumulation
-        #loss = loss / accumulation_steps
-        loss.backward()
-        total_loss += loss.item()
-        optim.step()
-        optim.zero_grad(set_to_none=True)
+            # fix layer number to 5, 32 attention heads, embedding_dim = 4096, ffn_embedding_dim = 12288
+            # same as with 64 heads
 
-        if batch_i == 20:
-            print(f"train loss: {total_loss/(batch_i+1)}")
-            break
+            # fix layer number to 5, 16 attention heads, embedding_dim = 2048, ffn_embedding_dim = 12288 /2
+            # the model is way worse now, loss goes down way slower
+            # fsdp + activation checkpointing + mixed precision: 32768 *8 tokens is max
+            # fsdp + mixed precision: 32768*2 tokens is max
+            # full precision: 32768 tokens is max
+
+            # once done with this, you need to check if all this even using flash attention
 
 
 
-        # catch gradients for wandb tracking
-        # this probably works for single GPU too
-        model_names = []
-        grad_dict = dict()
-        for name, param in model.named_parameters():
-            if param.requires_grad and param.grad is not None:#  param.grad is not None:
-                # Gather the gradients from all GPUs
-                grad = param.grad #.sum()
-                #print(name, grad.shape)
+            # chinchilla estimate for 150B tokens is ~ 10B params, this is ~10% of Whole genome across 500 genomes
+            # 7.5 B tokens is ~ 500M params, ~1% of whole genome across 250 genomes
+            seq_len = int(8192 *8)
+            encoded_sequence = torch.tensor(tokenizer.encode(data[0]).ids, dtype=torch.long).to(rank).bfloat16() #[:seq_len]
+            print(len(data[0]), encoded_sequence.shape)
+            encoded_sequence = encoded_sequence.unsqueeze(0)
+            #print("encoded_sequence", encoded_sequence.shape) # should be torch.Size([1, N])
+            # it wants logits to be torch.Size([1, vocab_size]) for CE loss
+            # feed it through the model forward
+            output = model.forward(encoded_sequence)
+            logits, embeddings = output["logits"], output["embeddings"]
+            logits = logits.permute(0, 2, 1)
+            # so labels need to be torch.Size([1, N, vocab_size])
+            #vocab_size = tokenizer.get_vocab_size()  # Get the size of the vocabulary
+            #labels = F.one_hot(encoded_sequence, num_classes=vocab_size)
+            #print("encoded_sequence", encoded_sequence.shape)
+            #print("labels", labels.shape)
+            # compute the loss
+            # what is true here?
+            loss = criterion(logits, encoded_sequence)
+            print(loss)
+            # normalize loss to account for batch accumulation
+            #loss = loss / accumulation_steps
+            loss.backward()
+            total_loss += loss.item()
+            optim.step()
+            optim.zero_grad(set_to_none=True)
+
+            if batch_i == 20:
+                print(f"train loss: {total_loss/(batch_i+1)}")
+                break
+
+
+
+            # catch gradients for wandb tracking
+            # this probably works for single GPU too
+            model_names = []
+            grad_dict = dict()
+            for name, param in model.named_parameters():
+                if param.requires_grad and param.grad is not None:#  param.grad is not None:
+                    # Gather the gradients from all GPUs
+                    grad = param.grad #.sum()
+                    #print(name, grad.shape)
+                    zero_threshold = 1e-6 
+                    grad_near_zero_count = torch.sum(grad.detach().cpu().abs() < zero_threshold).item()
+                    grad_total_count = grad.detach().cpu().numel()
+                    grad_near_zero_fraction = grad_near_zero_count / grad_total_count
+                    # grad_mean = torch.mean(grad.detach().cpu()).item()
+                    # grad_std = torch.std(grad.detach().cpu()).item() if grad_total_count > 1 else 0
+                    one_grad = {
+                        # f"gradients/{name}_mean": grad_mean,
+                        # f"gradients/{name}_std": grad_std,
+                        f"gradients/{name}_near_zero_fraction": grad_near_zero_fraction,
+                        }
+                    grad_dict.update(one_grad)
+                    #print(rank, type(grad_dict))
+                    model_names.append(name)
+            # log the gradients in wandb
+            if len(model_names) != 0 and use_wandb:
+                wandb.log({f"gradients/{name}_{stat}": grad_dict[f"gradients/{name}_{stat}"] for name in model_names for stat in [ "near_zero_fraction"]}) #"mean", "std",]})
+
+            # accumulation_counter += 1
+            # if accumulation_counter % accumulation_steps == 0 or (batch_i + 1 == len(train_loader)):
+            #     # Clip gradients
+            #     #torch.nn.utils.clip_grad_norm_(model.parameters(), 0.1)
+            #     #print("step taken")
+            #     optim.step()
+            #     optim.zero_grad(set_to_none=True)
+            #     if rank == 0:
+            #         print(f"epoch: {epoch_num}, loss: {loss}, global_batch_size: {accumulation_steps*world_size}",
+            #                flush=True)
+                    
+            if use_wandb:
+                # track the activations via stats and histogram over time
                 zero_threshold = 1e-6 
-                grad_near_zero_count = torch.sum(grad.detach().cpu().abs() < zero_threshold).item()
-                grad_total_count = grad.detach().cpu().numel()
-                grad_near_zero_fraction = grad_near_zero_count / grad_total_count
-                # grad_mean = torch.mean(grad.detach().cpu()).item()
-                # grad_std = torch.std(grad.detach().cpu()).item() if grad_total_count > 1 else 0
-                one_grad = {
-                    # f"gradients/{name}_mean": grad_mean,
-                    # f"gradients/{name}_std": grad_std,
-                    f"gradients/{name}_near_zero_fraction": grad_near_zero_fraction,
-                    }
-                grad_dict.update(one_grad)
-                #print(rank, type(grad_dict))
-                model_names.append(name)
-        # log the gradients in wandb
-        if len(model_names) != 0 and use_wandb:
-            wandb.log({f"gradients/{name}_{stat}": grad_dict[f"gradients/{name}_{stat}"] for name in model_names for stat in [ "near_zero_fraction"]}) #"mean", "std",]})
+                matmask_near_zero_count = torch.sum(output["matmask"].abs() < zero_threshold).item()
+                matmask_total_count = output["matmask"].numel()
+                matmask_near_zero_fraction = matmask_near_zero_count / matmask_total_count
 
-        # accumulation_counter += 1
-        # if accumulation_counter % accumulation_steps == 0 or (batch_i + 1 == len(train_loader)):
-        #     # Clip gradients
-        #     #torch.nn.utils.clip_grad_norm_(model.parameters(), 0.1)
-        #     #print("step taken")
-        #     optim.step()
-        #     optim.zero_grad(set_to_none=True)
-        #     if rank == 0:
-        #         print(f"epoch: {epoch_num}, loss: {loss}, global_batch_size: {accumulation_steps*world_size}",
-        #                flush=True)
-                
-        if use_wandb:
-            # track the activations via stats and histogram over time
-            zero_threshold = 1e-6 
-            matmask_near_zero_count = torch.sum(output["matmask"].abs() < zero_threshold).item()
-            matmask_total_count = output["matmask"].numel()
-            matmask_near_zero_fraction = matmask_near_zero_count / matmask_total_count
+                wandb.log({
+                    "epoch": epoch_num,
+                    "train_loss": loss.item(),
+                    "epoch_progress": accumulation_counter / len(train_loader),
+                    "sample_seq_len": len(encoded_sequence),
+                    "matmask_activation_mean": torch.mean(output["matmask"].detach().to(torch.float32).cpu()).item(),
+                    "matmask_activation_std": torch.std(output["matmask"].detach().to(torch.float32).cpu()).item(),
+                    "matmask_activation_near_zero_fraction": matmask_near_zero_fraction,
+                })
 
-            wandb.log({
-                "epoch": epoch_num,
-                "train_loss": loss.item(),
-                "epoch_progress": accumulation_counter / len(train_loader),
-                "sample_seq_len": len(encoded_sequence),
-                "matmask_activation_mean": torch.mean(output["matmask"].detach().to(torch.float32).cpu()).item(),
-                "matmask_activation_std": torch.std(output["matmask"].detach().to(torch.float32).cpu()).item(),
-                "matmask_activation_near_zero_fraction": matmask_near_zero_fraction,
-            })
-
-        if use_fsdp:
-            ddp_loss[0] += loss.item()
-            ddp_loss[1] += len(data) 
-    if use_fsdp:   
-        dist.all_reduce(ddp_loss, op=dist.ReduceOp.SUM)
-    
+            if use_fsdp:
+                ddp_loss[0] += loss.item()
+                ddp_loss[1] += len(data) 
+        if use_fsdp:   
+            dist.all_reduce(ddp_loss, op=dist.ReduceOp.SUM)
+        
 
 # this one is for simple training
 def single_GPU_main(train_path, val_path, epoch_num, model, optim, criterion, use_wandb, tokenizer):
@@ -341,26 +343,26 @@ def single_GPU_main(train_path, val_path, epoch_num, model, optim, criterion, us
 def validate(validation_loader, model, criterion, tokenizer, rank):
     # Calculate the validation loss
     val_loss = 0
-    model = model.bfloat16()
     model.eval()  # Set the model to evaluation mode
 
 
     with torch.no_grad():  # Disable gradient calculations
-        for batch_i, (data) in (enumerate(validation_loader)):
-            encoded_sequence = torch.tensor(tokenizer.encode(data[0]).ids, dtype=torch.long).to(rank.bfloat16() )#[:seq_len]
-            encoded_sequence = encoded_sequence.unsqueeze(0)
-            #print("encoded_sequence", encoded_sequence.shape) # should be torch.Size([1, N])
-            # it wants logits to be torch.Size([1, vocab_size]) for CE loss
-            # feed it through the model forward
-            output = model.forward(encoded_sequence)
-            logits, embeddings = output["logits"], output["embeddings"]
-            logits = logits.permute(0, 2, 1)
-            # so labels need to be torch.Size([1, N, vocab_size])
-            loss = criterion(logits, encoded_sequence)
-            #print(loss)
-            val_loss += loss.item()  # Accumulate the loss
+        with autocast(device_type='cuda', dtype=torch.bfloat16):
+            for batch_i, (data) in (enumerate(validation_loader)):
+                encoded_sequence = torch.tensor(tokenizer.encode(data[0]).ids, dtype=torch.long).to(rank)#[:seq_len]
+                encoded_sequence = encoded_sequence.unsqueeze(0)
+                #print("encoded_sequence", encoded_sequence.shape) # should be torch.Size([1, N])
+                # it wants logits to be torch.Size([1, vocab_size]) for CE loss
+                # feed it through the model forward
+                output = model.forward(encoded_sequence)
+                logits, embeddings = output["logits"], output["embeddings"]
+                logits = logits.permute(0, 2, 1)
+                # so labels need to be torch.Size([1, N, vocab_size])
+                loss = criterion(logits, encoded_sequence)
+                #print(loss)
+                val_loss += loss.item()  # Accumulate the loss
 
-            if batch_i == 20:
-                print(f'Validation loss: {val_loss/(batch_i+1)}')
-                return val_loss
+                if batch_i == 20:
+                    print(f'Validation loss: {val_loss/(batch_i+1)}')
+                    return val_loss
 
