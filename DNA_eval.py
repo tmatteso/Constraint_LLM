@@ -32,19 +32,19 @@ import random
 
 # split up the original transcript_strs into train and validation
 # rename transcript_strs to train_samples
-os.rename('transcript_strs', 'train_samples')
-# mkdir val_samples
-os.makedirs("val_samples", exist_ok=True)
+# os.rename('transcript_strs', 'train_samples')
+# # mkdir val_samples
+# os.makedirs("val_samples", exist_ok=True)
 
-# mv 1000 samples to validation set, val_samples
-# Get a list of files in the source directory
-files = os.listdir('train_samples')
-# Randomly select 1000 files
-random_files = random.sample(files, 1000)
+# # mv 1000 samples to validation set, val_samples
+# # Get a list of files in the source directory
+# files = os.listdir('train_samples')
+# # Randomly select 1000 files
+# random_files = random.sample(files, 1000)
 
-# Move the selected files
-for file in random_files:
-    shutil.move(os.path.join('train_samples', file), "val_samples")
+# # Move the selected files
+# for file in random_files:
+#     shutil.move(os.path.join('train_samples', file), "val_samples")
 
 raise Error
 # now, split up the clinvar vcf into coding and noncoding mutations and smaller subcategories

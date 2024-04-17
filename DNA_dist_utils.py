@@ -261,14 +261,12 @@ def epoch(model, rank, criterion,
     
 
 # this one is for simple training
-def single_GPU_main(pdb_dir_path, epoch_num, model, optim, criterion, use_wandb, tokenizer):
+def single_GPU_main(train_path, val_path, epoch_num, model, optim, criterion, use_wandb, tokenizer):
     rank = 0 # cuda device zero
     world_size = 1
     model = model.to(rank)
 
-    train_path, val_path = 
-
-    dataset1 = DNA_dataset(pdb_dir_path)
+    dataset1 = DNA_dataset(train_path)
     sampler1 = torch.utils.data.RandomSampler(dataset1)
     train_loader = torch.utils.data.DataLoader(
                                                 dataset1,
@@ -280,9 +278,9 @@ def single_GPU_main(pdb_dir_path, epoch_num, model, optim, criterion, use_wandb,
                                                 #drop_last=True
                                                 )
     
-    dataset2 = DNA_dataset()
+    dataset2 = DNA_dataset(val_path)
     sampler2 = torch.utils.data.RandomSampler(dataset2)
-    train_loader = torch.utils.data.DataLoader(
+    validation_loader = torch.utils.data.DataLoader(
                                                 dataset2,
                                                 #collate_fn=collate_fn,
                                                 batch_size=1,
@@ -293,9 +291,55 @@ def single_GPU_main(pdb_dir_path, epoch_num, model, optim, criterion, use_wandb,
                                                 )
     use_fsdp = False
 
+    best_val_loss = float('inf')
+    epochs_no_improve = 0
+    n_epochs_stop = 5
+    best_epoch = 0
+
     for e in range(epoch_num):
-        for batch_i, (data) in enumerate(train_loader):
-            epoch(model, rank, criterion,
+        #for batch_i, (data) in enumerate(train_loader):
+        epoch(model, rank, criterion,
                world_size, train_loader, use_wandb,
                optim, e, use_fsdp, tokenizer)
-            # I want a validation loss check here. Given 70,000 samples, let's hold out 1000 randomly
+        # save a model checkpoint
+            
+        # I want a validation loss check here. Given 70,000 samples, let's hold out 1000 randomly
+        val_loss = validate(validation_loader, model, criterion, tokenizer, rank)
+        # Check if the validation loss has decreased
+        if val_loss < best_val_loss:
+            best_val_loss = val_loss
+            epochs_no_improve = 0
+            best_epoch = e.copy()
+        else:
+            epochs_no_improve += 1
+            # Check if the validation loss has not decreased for 5 epochs
+            if epochs_no_improve == n_epochs_stop:
+                print(f'Early stopping! Reached epoch {e+1} with best validation loss of {best_val_loss} at epoch {best_epoch}')
+                break  # Stop training
+
+                
+
+def validate(validation_loader, model, criterion, tokenizer, rank):
+    # Calculate the validation loss
+    val_loss = 0
+    model.eval()  # Set the model to evaluation mode
+    with torch.no_grad():  # Disable gradient calculations
+        for batch_i, (data) in enumerate(validation_loader):
+            encoded_sequence = torch.tensor(tokenizer.encode(data[0]).ids, dtype=torch.long).to(rank)#[:seq_len]
+            encoded_sequence = encoded_sequence.unsqueeze(0)
+            #print("encoded_sequence", encoded_sequence.shape) # should be torch.Size([1, N])
+            # it wants logits to be torch.Size([1, vocab_size]) for CE loss
+            # feed it through the model forward
+            output = model.forward(encoded_sequence)
+            logits, embeddings = output["logits"], output["embeddings"]
+            logits = logits.permute(0, 2, 1)
+            # so labels need to be torch.Size([1, N, vocab_size])
+            loss = criterion(logits, encoded_sequence)
+            val_loss += loss.item()  # Accumulate the loss
+
+    # Calculate the average validation loss
+    val_loss /= len(validation_loader)
+
+    print(f'Validation loss: {val_loss}')
+    return val_loss
+

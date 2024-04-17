@@ -189,6 +189,8 @@ def main():
     multi_GPU = False
     WORLD_SIZE = torch.cuda.device_count()
 
+    train_path, val_path = "train_samples", "val_samples"
+
     tokenizer = Tokenizer.from_file("transcript_tokenizer.json")#"chr1_tokenizer.json")
     print("tokenizer loaded")
     # you need to add all the special tokens to tokenizer
@@ -222,7 +224,7 @@ def main():
         if use_wandb:
             wandb.init(project="ConstraintBERT")
 
-        single_GPU_main(args.chunk_dir, epoch_num, model, optimizer, criterion, use_wandb, tokenizer)
+        single_GPU_main(train_path, val_path, epoch_num, model, optimizer, criterion, use_wandb, tokenizer)
 
         if use_wandb:
             wandb.finish()
