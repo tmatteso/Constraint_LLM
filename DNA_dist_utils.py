@@ -178,7 +178,7 @@ def epoch(model, rank, criterion,
         # chinchilla estimate for 150B tokens is ~ 10B params, this is ~10% of Whole genome across 500 genomes
         # 7.5 B tokens is ~ 500M params, ~1% of whole genome across 250 genomes
         seq_len = int(8192 *8)
-        encoded_sequence = torch.tensor(tokenizer.encode(data[0]).ids, dtype=torch.long).to(rank)#[:seq_len]
+        encoded_sequence = torch.tensor(tokenizer.encode(data[0]).ids, dtype=torch.long).to(rank).bfloat16() #[:seq_len]
         print(len(data[0]), encoded_sequence.shape)
         encoded_sequence = encoded_sequence.unsqueeze(0)
         #print("encoded_sequence", encoded_sequence.shape) # should be torch.Size([1, N])
@@ -276,8 +276,9 @@ def single_GPU_main(train_path, val_path, epoch_num, model, optim, criterion, us
     rank = 0 # cuda device zero
     world_size = 1
     model = model.to(rank)
+
     # check if bf16
-    print(next(model.parameters()).dtype)
+    model = model.bfloat16() 
 
     dataset1 = DNA_dataset(train_path)
     sampler1 = torch.utils.data.RandomSampler(dataset1)
@@ -335,14 +336,18 @@ def single_GPU_main(train_path, val_path, epoch_num, model, optim, criterion, us
                 break  # Stop training
 
                 
+# right now we have ~ 562,949,953 params! This is pretty much chinchilla optimal
 
 def validate(validation_loader, model, criterion, tokenizer, rank):
     # Calculate the validation loss
     val_loss = 0
+    model = model.bfloat16()
     model.eval()  # Set the model to evaluation mode
+
+
     with torch.no_grad():  # Disable gradient calculations
         for batch_i, (data) in (enumerate(validation_loader)):
-            encoded_sequence = torch.tensor(tokenizer.encode(data[0]).ids, dtype=torch.long).to(rank)#[:seq_len]
+            encoded_sequence = torch.tensor(tokenizer.encode(data[0]).ids, dtype=torch.long).to(rank.bfloat16() )#[:seq_len]
             encoded_sequence = encoded_sequence.unsqueeze(0)
             #print("encoded_sequence", encoded_sequence.shape) # should be torch.Size([1, N])
             # it wants logits to be torch.Size([1, vocab_size]) for CE loss
