@@ -208,9 +208,9 @@ def epoch(model, rank, criterion,
         optim.step()
         optim.zero_grad(set_to_none=True)
 
-        if batch_i == 20:
-            print(f"train loss: {total_loss/(batch_i+1)}")
-            break
+        # if batch_i == 20:
+        #     print(f"train loss: {total_loss/(batch_i+1)}")
+        #     break
 
 
 
@@ -274,6 +274,8 @@ def epoch(model, rank, criterion,
             ddp_loss[1] += len(data) 
     if use_fsdp:   
         dist.all_reduce(ddp_loss, op=dist.ReduceOp.SUM)
+
+    print(f"train loss: {total_loss/(batch_i+1)}")
     
 
 # this one is for simple training
@@ -365,7 +367,8 @@ def validate(validation_loader, model, criterion, tokenizer, rank):
             #print(loss)
             val_loss += loss.item()  # Accumulate the loss
 
-            if batch_i == 20:
-                print(f'Validation loss: {val_loss/(batch_i+1)}')
-                return val_loss
+    print(f'Validation loss: {val_loss/(batch_i+1)}')
+            # if batch_i == 20:
+            #     print(f'Validation loss: {val_loss/(batch_i+1)}')
+            #     return val_loss
 
