@@ -67,17 +67,17 @@ import glob
 # Read the VCF file into a dataframe
 # Assuming the VCF file has been preprocessed to have 'chrom', 'pos' columns
 # Count the number of header lines
-# num_header_lines = sum(1 for line in open('clinvar.vcf') if line.startswith('##'))
+num_header_lines = sum(1 for line in open('clinvar.vcf') if line.startswith('##'))
 
-# dtypes = {
-#     '#CHROM': 'str',
-#     'POS': 'int64',
-#     # Add more columns as needed
-# }
+dtypes = {
+    '#CHROM': 'str',
+    'POS': 'int64',
+    # Add more columns as needed
+}
 
 # # Read the VCF file, skipping the meta-information lines
-# variants_df = pd.read_csv('clinvar.vcf', sep='\t', skiprows=num_header_lines, header=0,
-#                           usecols=['#CHROM', 'POS'],  engine='c', dtype=dtypes)
+variants_df = pd.read_csv('clinvar.vcf', sep='\t', skiprows=num_header_lines, header=0,
+                          usecols=['#CHROM', 'POS'],  engine='c', dtype=dtypes)
 
 # print("read in clinvar")
 # # Convert the DataFrame to a Parquet file
@@ -87,11 +87,11 @@ import glob
 # Read the Parquet file into a DataFrame
 # variants_df = pd.read_parquet('clinvar.parquet')
 
-all_transcripts = glob.glob("human_transcripts/*.csv")
+# all_transcripts = glob.glob("human_transcripts/*.csv")
 
-# put them all together in one file
+# # put them all together in one file
 
-transcript_bed = []
+# transcript_bed = []
 
 # for transcript_file in all_transcripts:
 #     # Read the BED file into a dataframe
@@ -102,19 +102,21 @@ transcript_bed = []
 
 # transcripts_df = pd.concat(transcript_bed)
 
-transcripts_df = pd.read_csv("all_transcripts.bed", sep='\t', 
-                             names=["chrom","start","end",
-                                    "ENCODE classification","transcript_and_name"])
+# transcripts_df = pd.read_csv("all_transcripts.bed", sep='\t', 
+#                              names=["chrom","start","end",
+#                                     "ENCODE classification","transcript_and_name"])
 
 
-# split into separate dfs based on chrom and save as separate bed files
-for name, group in transcripts_df.groupby('chrom'):
-    print(f'all_transcripts_{name}.bed')
-    group.to_csv(f'all_transcripts_{name}.bed', sep='\t', header=False, index=False)
+# # split into separate dfs based on chrom and save as separate bed files
+# for name, group in transcripts_df.groupby('chrom'):
+#     print(f'all_transcripts_{name}.bed')
+#     group.to_csv(f'all_transcripts_{name}.bed', sep='\t', header=False, index=False)
 
 # 
 # transcripts_df.to_csv("all_transcripts.bed", sep='\t', header=False, index=False)
-raise Error
+# raise Error
+
+all_transcripts = glob.glob("all_transcripts_*.bed")
 
 
 print("read in transcripts")
@@ -123,12 +125,17 @@ def is_in_transcript(variant):
     chrom, pos = variant
     return any((transcripts_df['chrom'] == chrom) & (transcripts_df['start'] <= pos) & (transcripts_df['end'] >= pos))
 
-# Apply the function to each variant
-variants_df['in_transcript'] = variants_df.apply(is_in_transcript, axis=1)
 
-print(variants_df['in_transcript'].sum())
+all_vars = []
 
-variants_df.to_csv("clinvar_in_transcripts.csv", index=False)
+for chrom_df in all_transcripts:
+    # Read the BED file into a dataframe
+    transcripts_df = pd.read_csv(chrom_df, sep='\t', names=["chrom","start","end",
+                                     "ENCODE classification","transcript_and_name"])
+    # Apply the function to each variant
+    variants_df['in_transcript'] = variants_df.apply(is_in_transcript, axis=1)
+    print(variants_df['in_transcript'].sum())
+    #variants_df.to_csv("clinvar_in_transcripts.csv", index=False)
 
 # Check if any variants fall within transcripts
 if variants_df['in_transcript'].any():
