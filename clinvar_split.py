@@ -17,7 +17,7 @@ def read_clinvar(filename):
                             usecols=['#CHROM', 'POS'],  engine='c', dtype=dtypes)
 
     name_ls = []
-    for name, group in transcripts_df.groupby('#CHROM'):
+    for name, group in variants_df.groupby('#CHROM'):
         group.to_csv(f'clinvar_{name}.csv')
         name_ls.append(f'clinvar_{name}.csv')
     return name_ls
