@@ -105,7 +105,7 @@ transcripts_df = pd.read_csv("all_transcripts.bed", sep='\t',
                              names=["chrom","start","end",
                                     "ENCODE classification","transcript_and_name"])
 
-print("read in trnascripts")
+print("read in transcripts")
 # Define a function to check if a variant falls within any transcript
 def is_in_transcript(variant):
     chrom, pos = variant
@@ -115,6 +115,8 @@ def is_in_transcript(variant):
 variants_df['in_transcript'] = variants_df.apply(is_in_transcript, axis=1)
 
 print(variants_df['in_transcript'].sum())
+
+variants_df.to_csv("clinvar_in_transcripts.csv", index=False)
 
 # Check if any variants fall within transcripts
 if variants_df['in_transcript'].any():
