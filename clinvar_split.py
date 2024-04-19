@@ -80,7 +80,7 @@ def is_in_transcript(variant, transcripts_df):
     return any((transcripts_df['chrom'] == chrom) & (transcripts_df['start'] <= pos) & (transcripts_df['end'] >= pos))
 
 # subset clinvar based on variants that appear in the transcript bed files
-def subset_clinvar(variants_df):
+def subset_clinvar(name_ls):
     # Apply the function to each variant
     all_transcripts = glob.glob("all_transcripts_*.bed")
 
