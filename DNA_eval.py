@@ -120,29 +120,55 @@ all_transcripts = glob.glob("all_transcripts_*.bed")
 
 
 print("read in transcripts")
-# Define a function to check if a variant falls within any transcript
-def is_in_transcript(variant):
-    chrom, pos = variant
-    return any((transcripts_df['chrom'] == chrom) & (transcripts_df['start'] <= pos) & (transcripts_df['end'] >= pos))
-
 
 all_vars = []
 
-for chrom_df in all_transcripts:
+import multiprocessing as mp
+
+# Define a function to process a single transcript
+def process_transcript(chrom_df):
     # Read the BED file into a dataframe
     transcripts_df = pd.read_csv(chrom_df, sep='\t', names=["chrom","start","end",
                                      "ENCODE classification","transcript_and_name"])
     # Apply the function to each variant
     variants_df['in_transcript'] = variants_df.apply(is_in_transcript, axis=1)
-    print(variants_df['in_transcript'].sum())
-    #variants_df.to_csv("clinvar_in_transcripts.csv", index=False)
+    return variants_df['in_transcript'].sum()
 
-# Check if any variants fall within transcripts
-if variants_df['in_transcript'].any():
-    print("Some variants fall within the genomic ranges in the transcripts.")
-else:
-    print("No variants fall within the genomic ranges in the transcripts.")
-raise Error
+
+# Define a function to check if a variant falls within any transcript
+def is_in_transcript(variant):
+    chrom, pos = variant
+    return any((transcripts_df['chrom'] == chrom) & (transcripts_df['start'] <= pos) & (transcripts_df['end'] >= pos))
+
+# Create a pool of processes
+pool = mp.Pool(mp.cpu_count())
+
+# Process each transcript in the pool of processes
+results = pool.map(process_transcript, all_transcripts)
+
+# Close the pool
+pool.close()
+pool.join()
+
+# Print the results
+for result in results:
+    print(result)
+
+# for chrom_df in all_transcripts:
+#     # Read the BED file into a dataframe
+#     transcripts_df = pd.read_csv(chrom_df, sep='\t', names=["chrom","start","end",
+#                                      "ENCODE classification","transcript_and_name"])
+#     # Apply the function to each variant
+#     variants_df['in_transcript'] = variants_df.apply(is_in_transcript, axis=1)
+#     print(variants_df['in_transcript'].sum())
+#     #variants_df.to_csv("clinvar_in_transcripts.csv", index=False)
+
+# # Check if any variants fall within transcripts
+# if variants_df['in_transcript'].any():
+#     print("Some variants fall within the genomic ranges in the transcripts.")
+# else:
+#     print("No variants fall within the genomic ranges in the transcripts.")
+# raise Error
 
 # Count the number of header lines
 num_header_lines = sum(1 for line in open('../clinvar.vcf') if line.startswith('##'))
