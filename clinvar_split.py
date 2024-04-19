@@ -53,39 +53,9 @@ def tx_bed_to_chrom_bed(transcript_dir, read_in_full, split_by_chrom=False):
         return transcripts_df
 
 
-# # Define a function to process a single transcript
-# def process_transcript(chrom_df, variants_df):
-#     # Read the BED file into a dataframe
-#     transcripts_df = pd.read_csv(chrom_df, sep='\t', names=["chrom","start","end",
-#                                      "ENCODE classification","transcript_and_name"])
-#     # Apply the function to each variant
-#     variants_df['in_transcript'] = variants_df.apply(is_in_transcript, axis=1)
-#     return variants_df['in_transcript'].sum()
-
-# # Define a function to check if a variant falls within any transcript
-# def is_in_transcript(variant):
-#     chrom, pos = variant
-#     return any((transcripts_df['chrom'] == chrom) & (transcripts_df['start'] <= pos) & (transcripts_df['end'] >= pos))
-
-# # subset clinvar based on variants that appear in the transcript bed files
-# def subset_clinvar(variants_df):
-#     # Apply the function to each variant
-#     all_transcripts = glob.glob("all_transcripts_*.bed")
-
-
-#     # Create a pool of processes
-#     pool = mp.Pool(mp.cpu_count())
-
-#     # Process each transcript in the pool of processes
-#     results = pool.map(process_transcript, all_transcripts, variants_df)
-
-#     # Close the pool
-#     pool.close()
-#     pool.join()
-
-
 # Define a function to process a single transcript
 def process_transcript(chrom_df, variants_df):
+    print(chrom_df)
     # Read the BED file into a dataframe
     transcripts_df = pd.read_csv(chrom_df, sep='\t', names=["chrom","start","end",
                                      "ENCODE classification","transcript_and_name"])
