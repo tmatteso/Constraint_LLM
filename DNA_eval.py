@@ -69,9 +69,15 @@ import glob
 # Count the number of header lines
 num_header_lines = sum(1 for line in open('clinvar.vcf') if line.startswith('##'))
 
+dtypes = {
+    '#CHROM': 'int8',
+    'POS': 'int64',
+    # Add more columns as needed
+}
+
 # Read the VCF file, skipping the meta-information lines
 variants_df = pd.read_csv('clinvar.vcf', sep='\t', skiprows=num_header_lines, header=0,
-                          usecols=['#CHROM', 'POS'])
+                          usecols=['#CHROM', 'POS'],  engine='c', dtype=dtypes)
 
 all_transcripts = glob.glob("human_transcripts/*.csv")
 
