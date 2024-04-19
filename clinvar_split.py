@@ -85,6 +85,7 @@ def process_transcript(chrom_df, name_ls):
 
 # Define a function to check if a variant falls within any transcript
 def is_in_transcript(variant, transcripts_df):
+    print(variant)
     # chrom, pos, ref, alt = variant
     # return any((transcripts_df['start'] <= pos) & (transcripts_df['end'] >= pos))
     chrom, pos, ref, alt = variant
