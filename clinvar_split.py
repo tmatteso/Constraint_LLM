@@ -65,7 +65,7 @@ def process_transcript(chrom_df, name_ls):
     # find the corresponding clinvar chrom chunk
     chrom = chrom_df.split('_')[-1].split('.')[0]
     clinvar_name = [name for name in name_ls if chrom in name][0]
-    variants_df = pd.read_csv(clinvar_name, usecols=['#CHROM', 'POS'])
+    variants_df = pd.read_csv(clinvar_name, usecols=['#CHROM', 'POS', 'REF', 'ALT'])
 
     # Read the BED file into a dataframe
     transcripts_df = pd.read_csv(chrom_df, sep='\t', names=["chrom","start","end",
