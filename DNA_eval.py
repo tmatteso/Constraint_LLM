@@ -70,7 +70,7 @@ import glob
 num_header_lines = sum(1 for line in open('clinvar.vcf') if line.startswith('##'))
 
 dtypes = {
-    '#CHROM': 'int8',
+    '#CHROM': 'str',
     'POS': 'int64',
     # Add more columns as needed
 }
