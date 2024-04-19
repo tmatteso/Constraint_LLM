@@ -73,7 +73,6 @@ def process_transcript(chrom_df, name_ls):
 
     print(chrom_df, len(transcripts_df.index), clinvar_name, len(variants_df.index))
     # Apply the function to each variant
-    print(variants_df)
     variants_df['in_transcript'] = variants_df.apply(is_in_transcript, axis=1, args=(transcripts_df,))
 
     # for every variant that we know intersects, make the change in the string file. 
@@ -86,7 +85,6 @@ def process_transcript(chrom_df, name_ls):
 
 # Define a function to check if a variant falls within any transcript
 def is_in_transcript(variant, transcripts_df):
-    print(variant)
     # chrom, pos, ref, alt = variant
     # return any((transcripts_df['start'] <= pos) & (transcripts_df['end'] >= pos))
     chrom, pos, ref, alt = variant
