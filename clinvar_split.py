@@ -86,7 +86,7 @@ def subset_clinvar(variants_df):
 # redo DNA_eval in a non dumb way
 def main():
     filename = 'clinvar.vcf'
-    clinvar = read_clinvar(filename)
+    variants_df = read_clinvar(filename)
     transcript_dir = "human_transcripts/*.csv"
     read_in_full = False
     #transcripts_df = tx_bed_to_chrom_bed(transcript_dir, read_in_full)
