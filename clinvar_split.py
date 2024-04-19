@@ -55,13 +55,15 @@ def tx_bed_to_chrom_bed(transcript_dir, read_in_full, split_by_chrom=False):
 
 # Define a function to process a single transcript
 def process_transcript(chrom_df, variants_df):
-    print(chrom_df)
     # Read the BED file into a dataframe
     transcripts_df = pd.read_csv(chrom_df, sep='\t', names=["chrom","start","end",
                                      "ENCODE classification","transcript_and_name"])
+
+    print(chrom_df, len(transcripts_df.index))
     # Apply the function to each variant
     variants_df['in_transcript'] = variants_df.apply(is_in_transcript, axis=1, args=(transcripts_df,))
-    return variants_df['in_transcript'].sum()
+    print(chrom_df, variants_df['in_transcript'].sum())
+    return variants_df[variants_df['in_transcript'] == True]
 
 # Define a function to check if a variant falls within any transcript
 def is_in_transcript(variant, transcripts_df):
@@ -82,6 +84,10 @@ def subset_clinvar(variants_df):
     # Close the pool
     pool.close()
     pool.join()
+
+    print(results)
+    results = pd.concat(results)
+    results.to_csv("clinvar_subset.csv")
 
 # redo DNA_eval in a non dumb way
 def main():
