@@ -1,11 +1,16 @@
 import requests
+import urllib.request
+# def download_file(url, filename):
+#     response = requests.get(url, stream=True)
+#     response.raise_for_status()
+#     with open(filename, 'wb') as file:
+#         for chunk in response.iter_content(chunk_size=8192):
+#             file.write(chunk)
 
 def download_file(url, filename):
-    response = requests.get(url, stream=True)
-    response.raise_for_status()
-    with open(filename, 'wb') as file:
-        for chunk in response.iter_content(chunk_size=8192):
-            file.write(chunk)
+    with urllib.request.urlopen(url) as response, open(filename, 'wb') as out_file:
+        data = response.read()  # a `bytes` object
+        out_file.write(data)
 
 # get human genome
 #url = 'http://hgdownload.cse.ucsc.edu/goldenPath/hg38/bigZips/hg38.fa.gz'
