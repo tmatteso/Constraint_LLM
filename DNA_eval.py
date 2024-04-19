@@ -67,19 +67,19 @@ import glob
 # Read the VCF file into a dataframe
 # Assuming the VCF file has been preprocessed to have 'chrom', 'pos' columns
 # Count the number of header lines
-num_header_lines = sum(1 for line in open('clinvar.vcf') if line.startswith('##'))
+# num_header_lines = sum(1 for line in open('clinvar.vcf') if line.startswith('##'))
 
-dtypes = {
-    '#CHROM': 'str',
-    'POS': 'int64',
-    # Add more columns as needed
-}
+# dtypes = {
+#     '#CHROM': 'str',
+#     'POS': 'int64',
+#     # Add more columns as needed
+# }
 
-# Read the VCF file, skipping the meta-information lines
-variants_df = pd.read_csv('clinvar.vcf', sep='\t', skiprows=num_header_lines, header=0,
-                          usecols=['#CHROM', 'POS'],  engine='c', dtype=dtypes)
+# # Read the VCF file, skipping the meta-information lines
+# variants_df = pd.read_csv('clinvar.vcf', sep='\t', skiprows=num_header_lines, header=0,
+#                           usecols=['#CHROM', 'POS'],  engine='c', dtype=dtypes)
 
-print("read in clinvar")
+# print("read in clinvar")
 # # Convert the DataFrame to a Parquet file
 # variants_df.to_parquet('clinvar.parquet')
 
@@ -87,16 +87,20 @@ print("read in clinvar")
 # Read the Parquet file into a DataFrame
 # variants_df = pd.read_parquet('clinvar.parquet')
 
-# all_transcripts = glob.glob("human_transcripts/*.csv")
+all_transcripts = glob.glob("human_transcripts/*.csv")
 
 # put them all together in one file
 
 # transcript_bed = []
 
-# for transcript_file in all_transcripts:
-#     # Read the BED file into a dataframe
-#     transcripts_df = pd.read_csv(transcript_file) #'file.bed', sep='\t', usecols=['chrom', 'start', 'end'])
-#     transcript_bed.append(transcripts_df)
+for transcript_file in all_transcripts:
+    # Read the BED file into a dataframe
+    transcripts_df = pd.read_csv(transcript_file) #'file.bed', sep='\t', usecols=['chrom', 'start', 'end'])
+    if len(transcripts_df.chrom.unique()) > 1:
+        print(transcript_file)
+    
+raise Error
+#   transcript_bed.append(transcripts_df)
 
 # transcripts_df = pd.concat(transcript_bed)
 # transcripts_df.to_csv("all_transcripts.bed", sep='\t', header=False, index=False)
