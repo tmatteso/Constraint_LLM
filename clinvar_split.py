@@ -61,6 +61,8 @@ def tx_bed_to_chrom_bed(transcript_dir, read_in_full, split_by_chrom=False):
 def process_transcript(chrom_df, name_ls):
     # find the corresponding clinvar chrom chunk
     chrom = chrom_df.split('_')[-1].split('.')[0]
+    print(chrom)
+    print(name_ls)
     clinvar_name = [name for name in name_ls if chrom in name][0]
     variants_df = pd.read_csv(clinvar_name, usecols=['#CHROM', 'POS'])
 
