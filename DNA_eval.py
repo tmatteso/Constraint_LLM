@@ -91,18 +91,23 @@ all_transcripts = glob.glob("human_transcripts/*.csv")
 
 # put them all together in one file
 
-# transcript_bed = []
+transcript_bed = []
 
 for transcript_file in all_transcripts:
     # Read the BED file into a dataframe
     transcripts_df = pd.read_csv(transcript_file) #'file.bed', sep='\t', usecols=['chrom', 'start', 'end'])
-    if len(transcripts_df.chrom.unique()) > 1:
-        print(transcript_file)
-    
-raise Error
-#   transcript_bed.append(transcripts_df)
+    # if len(transcripts_df.chrom.unique()) > 1:
+    #     print(transcript_file)
+    transcript_bed.append(transcripts_df)
 
-# transcripts_df = pd.concat(transcript_bed)
+transcripts_df = pd.concat(transcript_bed)
+# split into separate dfs based on chrom and save as separate bed files
+for name, group in transcripts_df.groupby('chrom'):
+    print(name)
+    raise Error
+    group.to_csv(f'{name}.bed', sep='\t', header=False, index=False)
+
+# 
 # transcripts_df.to_csv("all_transcripts.bed", sep='\t', header=False, index=False)
 
 transcripts_df = pd.read_csv("all_transcripts.bed", sep='\t', 
