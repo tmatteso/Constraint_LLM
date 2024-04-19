@@ -29,6 +29,7 @@ import re
 import os
 import shutil
 import random
+import glob
 
 # split up the original transcript_strs into train and validation
 # rename transcript_strs to train_samples
@@ -46,12 +47,64 @@ import random
 # for file in random_files:
 #     shutil.move(os.path.join('train_samples', file), "val_samples")
 
-raise Error
+#raise Error
 # now, split up the clinvar vcf into coding and noncoding mutations and smaller subcategories
 
 # save as separate csv files
 
 
+
+# subset based on if they appear in my bed files
+# how do I make this fast?
+# df = pd.read_csv("example_transcript.csv")
+
+# # Select the columns for the BED file
+# bed_df = df[['chrom', 'start', 'end']]  # Replace 'chrom', 'start', 'end' with your actual column names
+
+# # Write the BED file
+# bed_df.to_csv('file.bed', sep='\t', header=False, index=False)
+
+# Read the VCF file into a dataframe
+# Assuming the VCF file has been preprocessed to have 'chrom', 'pos' columns
+# Count the number of header lines
+num_header_lines = sum(1 for line in open('../clinvar.vcf') if line.startswith('##'))
+
+# Read the VCF file, skipping the meta-information lines
+variants_df = pd.read_csv('../clinvar.vcf', sep='\t', skiprows=num_header_lines, header=0,
+                          usecols=['#CHROM', 'POS'])
+
+all_transcripts = glob.glob("human_transcripts/*.csv")
+
+# put them all together in one file
+
+transcript_bed = []
+
+for transcript_file in all_transcripts:
+    # Read the BED file into a dataframe
+    transcripts_df = pd.read_csv(transcript_file) #'file.bed', sep='\t', usecols=['chrom', 'start', 'end'])
+    transcript_bed.append(transcripts_df)
+
+transcripts_df = pd.concat(transcript_bed)
+transcripts_df.to_csv("all_transcripts.bed", sep='\t', header=False, index=False)
+
+
+
+# Define a function to check if a variant falls within any transcript
+def is_in_transcript(variant):
+    chrom, pos = variant
+    return any((transcripts_df['chrom'] == chrom) & (transcripts_df['start'] <= pos) & (transcripts_df['end'] >= pos))
+
+# Apply the function to each variant
+variants_df['in_transcript'] = variants_df.apply(is_in_transcript, axis=1)
+
+print(variants_df['in_transcript'].sum())
+
+# Check if any variants fall within transcripts
+if variants_df['in_transcript'].any():
+    print("Some variants fall within the genomic ranges in the transcripts.")
+else:
+    print("No variants fall within the genomic ranges in the transcripts.")
+raise Error
 
 # Count the number of header lines
 num_header_lines = sum(1 for line in open('../clinvar.vcf') if line.startswith('##'))
@@ -70,20 +123,67 @@ df['seq_ontology_id'] = df['mc'].apply(lambda x: x.split('|')[0] if x else None)
 df['molecular_consequence'] = df['mc'].apply(lambda x: x.split('|')[1].split(',')[0] if x else None)
 print(df['molecular_consequence'])
 df = df.reindex(columns=['#CHROM', 'POS', 'REF', 'ALT', 'clnsig', 'clnvc', 'geneinfo', 'seq_ontology_id', 'molecular_consequence', 'origin'])
-print(df.molecular_consequence.unique())
-# Separate the DataFrame into coding and noncoding mutations
-# split based on your bed files!
 
-# does it occur in any exon? --> coding
 
-# does it occur in any known cCRE -> known noncoding
 
-# literally anything else --> unknown noncoding
+# check if any variant falls within any of the genomic ranges in the transcripts
 
-# noncoding is everything else?
-coding_df = df[df['molecular_consequence'].str.contains('missense_variant', na=False)]
-# noncoding includes at least intron_variant, splice_donor_variant
-noncoding_df = df[~df['molecular_consequence'].str.contains('missense_variant', na=False)]
+benign = [
+    "Benign", 'Benign/Likely_benign', "Likely_benign"
+]
+
+pathogenic = [
+    "Pathogenic", 'Pathogenic/Likely_pathogenic', "Likely_pathogenic"
+]
+
+regex = '|'.join(benign)
+# Use the regular expression with str.contains
+benign_df = df[df['clnsig'].str.contains(regex, na=False)]
+#print(len(benign_df.index)) # 1,114,427
+regex = '|'.join(pathogenic)
+pathogenic_df = df[df['clnsig'].str.contains(regex, na=False)]
+#print(len(pathogenic_df.index)) # 263711
+
+df_ls = [benign_df, pathogenic_df]
+name_ls = ["benign", "pathogenic"]
+
+coding_ls = [
+    "missense_variant", "synonymous_variant", "inframe_deletion", "nonsense",
+    "inframe_insertion", "inframe_indel", "stop_lost", "genic_downstream_transcript_variant", 
+    "genic_upstream_transcript_variant", "initiator_codon_variant"
+    ]
+
+for i in range(len(df_ls)):
+    sub_df = df_ls[i]
+    # Create a regular expression that matches any of the entries in coding_ls
+    regex = '|'.join(coding_ls)
+
+    # Use the regular expression with str.contains
+    coding_df = sub_df[sub_df['molecular_consequence'].str.contains(regex, na=False)]
+    # noncoding is everything else
+    noncoding_df = sub_df[~sub_df['molecular_consequence'].str.contains(regex, na=False)]
+    # Save the coding and noncoding DataFrames to CSV files
+    coding_df.to_csv(f'clinvar_coding_{name_ls[i]}.csv', index=False)
+    noncoding_df.to_csv(f'clinvar_noncoding_{name_ls[i]}.csv', index=False)
+
+# because we cannot predict snps for the most part, 
+# we have to align these variants to the genome for proper context
+    
+# example transcript file for now.
+
+
+# at the end of the day, we want (DNA, benign) pairs. The most obvious issue with BPE is the alignment issue
+# so given SNP, align to tokenized transcripts, for now. 
+    
+# then get the logits from the model and score the variant.
+    
+# then we define some simple cutoff line to do the classification.
+
+# test against NT, DNA BERT
+    
+# so let's see how many variants fit nicely in out existing genome chunks
+
+
 #print(noncoding_df.molecular_consequence.unique())
 
 # ['missense_variant' 'synonymous_variant' 'splice_donor_variant'
@@ -99,10 +199,8 @@ noncoding_df = df[~df['molecular_consequence'].str.contains('missense_variant', 
 
 
 
-# Save the coding and noncoding DataFrames to CSV files
-coding_df.to_csv('clinvar_coding.csv', index=False)
-noncoding_df.to_csv('clinvar_noncoding.csv', index=False)
-raise Error
+
+#raise Error
 
 
 # subsets = {chrom: df[df['#CHROM'] == chrom] for chrom in df['#CHROM'].unique()}

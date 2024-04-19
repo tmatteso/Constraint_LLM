@@ -8,13 +8,18 @@ def download_file(url, filename):
             file.write(chunk)
 
 # get human genome
-url = 'http://hgdownload.cse.ucsc.edu/goldenPath/hg38/bigZips/hg38.fa.gz'
-filename = 'hg38.fa.gz'
-download_file(url, filename)
+#url = 'http://hgdownload.cse.ucsc.edu/goldenPath/hg38/bigZips/hg38.fa.gz'
+#filename = 'hg38.fa.gz'
+#download_file(url, filename)
 
 # get cCREs
-url = "https://hgdownload.soe.ucsc.edu/gbdb/hg38/encode3/ccre/encodeCcreCombined.bb"
-filename = "encodeCcreCombined.bb"
+#url = "https://hgdownload.soe.ucsc.edu/gbdb/hg38/encode3/ccre/encodeCcreCombined.bb"
+#filename = "encodeCcreCombined.bb"
+#download_file(url, filename)
+
+# get clinvar for testing
+url = "ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/clinvar.vcf.gz"
+filename = "clinvar.vcf.gz"
 download_file(url, filename)
 
 # get TSS from an scp (small enough)

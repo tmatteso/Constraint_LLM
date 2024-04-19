@@ -370,6 +370,7 @@ def validate(validation_loader, model, criterion, tokenizer, rank):
             val_loss += loss.item()  # Accumulate the loss
 
     print(f'Validation loss: {val_loss/(batch_i+1)}')
+    return val_loss
             # if batch_i == 20:
             #     print(f'Validation loss: {val_loss/(batch_i+1)}')
             #     return val_loss
