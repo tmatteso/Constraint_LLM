@@ -73,12 +73,14 @@ def process_transcript(chrom_df, name_ls):
     # Apply the function to each variant
     variants_df['in_transcript'] = variants_df.apply(is_in_transcript, axis=1, args=(transcripts_df,))
     print(chrom_df, "clinvar variants", variants_df['in_transcript'])
+    print()
     return variants_df[variants_df['in_transcript'] == True]
 
 # Define a function to check if a variant falls within any transcript
 def is_in_transcript(variant, transcripts_df):
     chrom, pos = variant
-    return any((transcripts_df['chrom'] == chrom) & (transcripts_df['start'] <= pos) & (transcripts_df['end'] >= pos))
+    #return any((transcripts_df['chrom'] == chrom) & (transcripts_df['start'] <= pos) & (transcripts_df['end'] >= pos))
+    return any((transcripts_df['start'] <= pos) & (transcripts_df['end'] >= pos))
 
 # subset clinvar based on variants that appear in the transcript bed files
 def subset_clinvar(name_ls):
