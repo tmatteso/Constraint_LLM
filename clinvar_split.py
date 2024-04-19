@@ -62,8 +62,6 @@ def tx_bed_to_chrom_bed(transcript_dir, read_in_full, split_by_chrom=False):
 def process_transcript(chrom_df, name_ls):
     # find the corresponding clinvar chrom chunk
     chrom = chrom_df.split('_')[-1].split('.')[0]
-    print(chrom)
-    print(name_ls)
     clinvar_name = [name for name in name_ls if chrom in name][0]
     variants_df = pd.read_csv(clinvar_name, usecols=['#CHROM', 'POS'])
 
@@ -74,7 +72,7 @@ def process_transcript(chrom_df, name_ls):
     print(chrom_df, len(transcripts_df.index), clinvar_name, len(variants_df.index))
     # Apply the function to each variant
     variants_df['in_transcript'] = variants_df.apply(is_in_transcript, axis=1, args=(transcripts_df,))
-    print(chrom_df, variants_df['in_transcript'].sum())
+    print(chrom_df, "clinvar variants", variants_df['in_transcript'].sum())
     return variants_df[variants_df['in_transcript'] == True]
 
 # Define a function to check if a variant falls within any transcript
