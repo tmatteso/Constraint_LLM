@@ -18,7 +18,7 @@ def read_clinvar(filename):
 
     name_ls = []
     for name, group in variants_df.groupby('#CHROM'):
-        new_name = f'clinvar_chr_{name}.csv'
+        new_name = f'clinvar_chr{name}.csv'
         group.to_csv(new_name)
         name_ls.append(new_name)
     return name_ls
