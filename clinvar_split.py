@@ -9,12 +9,14 @@ def read_clinvar(filename):
     dtypes = {
         '#CHROM': 'str',
         'POS': 'int64',
+        'REF': 'str',
+        'ALT': 'str',
         # Add more columns as needed
     }
 
     # # Read the VCF file, skipping the meta-information lines
     variants_df = pd.read_csv(filename, sep='\t', skiprows=num_header_lines, header=0,
-                            usecols=['#CHROM', 'POS'],  engine='c', dtype=dtypes)
+                            usecols=['#CHROM', 'POS', 'REF', 'ALT'],  engine='c', dtype=dtypes)
 
     name_ls = []
     for name, group in variants_df.groupby('#CHROM'):
@@ -72,15 +74,25 @@ def process_transcript(chrom_df, name_ls):
     print(chrom_df, len(transcripts_df.index), clinvar_name, len(variants_df.index))
     # Apply the function to each variant
     variants_df['in_transcript'] = variants_df.apply(is_in_transcript, axis=1, args=(transcripts_df,))
-    print(chrom_df, "clinvar variants", variants_df['in_transcript'].sum())
+
+    # for every variant that we know intersects, make the change in the string file. 
+
+    # use transcript_and_name to get the string file
+
+    print(chrom_df, "clinvar variants", variants_df['in_transcript'])
     print()
     return variants_df[variants_df['in_transcript'] == True]
 
 # Define a function to check if a variant falls within any transcript
 def is_in_transcript(variant, transcripts_df):
-    chrom, pos = variant
-    #return any((transcripts_df['chrom'] == chrom) & (transcripts_df['start'] <= pos) & (transcripts_df['end'] >= pos))
-    return any((transcripts_df['start'] <= pos) & (transcripts_df['end'] >= pos))
+    # chrom, pos, ref, alt = variant
+    # return any((transcripts_df['start'] <= pos) & (transcripts_df['end'] >= pos))
+    chrom, pos, ref, alt = variant
+    transcript_rows = transcripts_df[(transcripts_df['start'] <= pos) & (transcripts_df['end'] >= pos)]
+    if not transcript_rows.empty:
+        return transcript_rows['transcript_and_name'].values[0]
+    else:
+        return None
 
 # subset clinvar based on variants that appear in the transcript bed files
 def subset_clinvar(name_ls):
