@@ -19,6 +19,8 @@ def read_clinvar(filename):
     name_ls = []
     for name, group in variants_df.groupby('#CHROM'):
         new_name = f'clinvar_chr{name}.csv'
+        print(group)
+        raise Error
         group.to_csv(new_name)
         name_ls.append(new_name)
     return name_ls
@@ -77,7 +79,7 @@ def process_transcript(chrom_df, name_ls):
 
 # Define a function to check if a variant falls within any transcript
 def is_in_transcript(variant, transcripts_df):
-    chrom, pos = variant
+    chrom, start, end = variant
     return any((transcripts_df['chrom'] == chrom) & (transcripts_df['start'] <= pos) & (transcripts_df['end'] >= pos))
 
 # subset clinvar based on variants that appear in the transcript bed files
