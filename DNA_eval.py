@@ -93,26 +93,29 @@ all_transcripts = glob.glob("human_transcripts/*.csv")
 
 transcript_bed = []
 
-for transcript_file in all_transcripts:
-    # Read the BED file into a dataframe
-    transcripts_df = pd.read_csv(transcript_file) #'file.bed', sep='\t', usecols=['chrom', 'start', 'end'])
-    # if len(transcripts_df.chrom.unique()) > 1:
-    #     print(transcript_file)
-    transcript_bed.append(transcripts_df)
+# for transcript_file in all_transcripts:
+#     # Read the BED file into a dataframe
+#     transcripts_df = pd.read_csv(transcript_file) #'file.bed', sep='\t', usecols=['chrom', 'start', 'end'])
+#     # if len(transcripts_df.chrom.unique()) > 1:
+#     #     print(transcript_file)
+#     transcript_bed.append(transcripts_df)
 
-transcripts_df = pd.concat(transcript_bed)
-# split into separate dfs based on chrom and save as separate bed files
-for name, group in transcripts_df.groupby('chrom'):
-    print(name)
-    raise Error
-    group.to_csv(f'{name}.bed', sep='\t', header=False, index=False)
-
-# 
-# transcripts_df.to_csv("all_transcripts.bed", sep='\t', header=False, index=False)
+# transcripts_df = pd.concat(transcript_bed)
 
 transcripts_df = pd.read_csv("all_transcripts.bed", sep='\t', 
                              names=["chrom","start","end",
                                     "ENCODE classification","transcript_and_name"])
+
+
+# split into separate dfs based on chrom and save as separate bed files
+for name, group in transcripts_df.groupby('chrom'):
+    print(f'all_transcripts_{name}.bed')
+    group.to_csv(f'all_transcripts_{name}.bed', sep='\t', header=False, index=False)
+
+# 
+# transcripts_df.to_csv("all_transcripts.bed", sep='\t', header=False, index=False)
+raise Error
+
 
 print("read in transcripts")
 # Define a function to check if a variant falls within any transcript
