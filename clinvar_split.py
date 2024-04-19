@@ -85,8 +85,7 @@ def tx_bed_to_chrom_bed(transcript_dir, read_in_full, split_by_chrom=False):
 
 
 # Define a function to process a single transcript
-def process_transcript(args):
-    chrom_df, variants_df = args
+def process_transcript(chrom_df, variants_df):
     # Read the BED file into a dataframe
     transcripts_df = pd.read_csv(chrom_df, sep='\t', names=["chrom","start","end",
                                      "ENCODE classification","transcript_and_name"])
