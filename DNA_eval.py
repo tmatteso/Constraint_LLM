@@ -79,28 +79,29 @@ dtypes = {
 variants_df = pd.read_csv('clinvar.vcf', sep='\t', skiprows=num_header_lines, header=0,
                           usecols=['#CHROM', 'POS'],  engine='c', dtype=dtypes)
 
+print("read in clinvar")
+# # Convert the DataFrame to a Parquet file
+# variants_df.to_parquet('clinvar.parquet')
 
-# Convert the DataFrame to a Parquet file
-variants_df.to_parquet('clinvar.parquet')
-
-raise Error
+# raise Error
 # Read the Parquet file into a DataFrame
-variants_df = pd.read_parquet('clinvar.parquet')
+# variants_df = pd.read_parquet('clinvar.parquet')
 
-all_transcripts = glob.glob("human_transcripts/*.csv")
+# all_transcripts = glob.glob("human_transcripts/*.csv")
 
 # put them all together in one file
 
-transcript_bed = []
+# transcript_bed = []
 
-for transcript_file in all_transcripts:
-    # Read the BED file into a dataframe
-    transcripts_df = pd.read_csv(transcript_file) #'file.bed', sep='\t', usecols=['chrom', 'start', 'end'])
-    transcript_bed.append(transcripts_df)
+# for transcript_file in all_transcripts:
+#     # Read the BED file into a dataframe
+#     transcripts_df = pd.read_csv(transcript_file) #'file.bed', sep='\t', usecols=['chrom', 'start', 'end'])
+#     transcript_bed.append(transcripts_df)
 
-transcripts_df = pd.concat(transcript_bed)
-transcripts_df.to_csv("all_transcripts.bed", sep='\t', header=False, index=False)
+# transcripts_df = pd.concat(transcript_bed)
+# transcripts_df.to_csv("all_transcripts.bed", sep='\t', header=False, index=False)
 
+transcripts_df = pd.read_csv("all_transcripts.bed", sep='\t', header=False, index=False)
 
 
 # Define a function to check if a variant falls within any transcript
