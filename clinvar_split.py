@@ -72,7 +72,7 @@ def process_transcript(chrom_df, name_ls):
     print(chrom_df, len(transcripts_df.index), clinvar_name, len(variants_df.index))
     # Apply the function to each variant
     variants_df['in_transcript'] = variants_df.apply(is_in_transcript, axis=1, args=(transcripts_df,))
-    print(chrom_df, "clinvar variants", variants_df['in_transcript'])
+    print(chrom_df, "clinvar variants", variants_df['in_transcript'].sum())
     print()
     return variants_df[variants_df['in_transcript'] == True]
 
