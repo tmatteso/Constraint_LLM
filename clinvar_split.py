@@ -15,8 +15,12 @@ def read_clinvar(filename):
     # # Read the VCF file, skipping the meta-information lines
     variants_df = pd.read_csv(filename, sep='\t', skiprows=num_header_lines, header=0,
                             usecols=['#CHROM', 'POS'],  engine='c', dtype=dtypes)
-    
-    return variants_df
+
+    name_ls = []
+    for name, group in transcripts_df.groupby('#CHROM'):
+        group.to_csv(f'clinvar_{name}.csv')
+        name_ls.append(f'clinvar_{name}.csv')
+    return name_ls
 
 
 # read in the transcripts
@@ -54,12 +58,17 @@ def tx_bed_to_chrom_bed(transcript_dir, read_in_full, split_by_chrom=False):
 
 
 # Define a function to process a single transcript
-def process_transcript(chrom_df, variants_df):
+def process_transcript(chrom_df, name_ls):
+    # find the corresponding clinvar chrom chunk
+    chrom = chrom_df.split('_')[-1].split('.')[0]
+    clinvar_name = [name for name in name_ls if chrom in name][0]
+    variants_df = pd.read_csv(clinvar_name, usecols=['#CHROM', 'POS'])
+
     # Read the BED file into a dataframe
     transcripts_df = pd.read_csv(chrom_df, sep='\t', names=["chrom","start","end",
                                      "ENCODE classification","transcript_and_name"])
 
-    print(chrom_df, len(transcripts_df.index))
+    print(chrom_df, len(transcripts_df.index), clinvar_name, len(variants_df.index))
     # Apply the function to each variant
     variants_df['in_transcript'] = variants_df.apply(is_in_transcript, axis=1, args=(transcripts_df,))
     print(chrom_df, variants_df['in_transcript'].sum())
@@ -79,7 +88,7 @@ def subset_clinvar(variants_df):
     pool = mp.Pool(mp.cpu_count())
 
     # Process each transcript in the pool of processes
-    results = pool.starmap(process_transcript, [(transcript, variants_df) for transcript in all_transcripts])
+    results = pool.starmap(process_transcript, [(transcript, name_ls) for transcript in all_transcripts])
 
     # Close the pool
     pool.close()
@@ -92,11 +101,11 @@ def subset_clinvar(variants_df):
 # redo DNA_eval in a non dumb way
 def main():
     filename = 'clinvar.vcf'
-    variants_df = read_clinvar(filename)
+    name_ls = read_clinvar(filename)
     transcript_dir = "human_transcripts/*.csv"
     read_in_full = False
     #transcripts_df = tx_bed_to_chrom_bed(transcript_dir, read_in_full)
-    subset_clinvar(variants_df)
+    subset_clinvar(name_ls)
 
     pass
 
