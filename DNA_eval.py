@@ -79,6 +79,14 @@ dtypes = {
 variants_df = pd.read_csv('clinvar.vcf', sep='\t', skiprows=num_header_lines, header=0,
                           usecols=['#CHROM', 'POS'],  engine='c', dtype=dtypes)
 
+
+# Convert the DataFrame to a Parquet file
+variants_df.to_parquet('clinvar.parquet')
+
+raise Error
+# Read the Parquet file into a DataFrame
+variants_df = pd.read_parquet('clinvar.parquet')
+
 all_transcripts = glob.glob("human_transcripts/*.csv")
 
 # put them all together in one file
