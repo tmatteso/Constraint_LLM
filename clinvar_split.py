@@ -78,7 +78,8 @@ def process_transcript(chrom_df, name_ls):
         if transcript_and_name is not None:
             subset_df = transcripts_df[transcripts_df.transcript_and_name == transcript_and_name]
             clinvar_row = variants_df.loc[index]
-            print(clinvar_row.POS - subset_df.start)
+            print(clinvar_row.POS)
+            print(subset_df.start)
             #print(clinvar_row)
             raise Error
             
