@@ -74,8 +74,25 @@ def process_transcript(chrom_df, name_ls):
     print(chrom_df, len(transcripts_df.index), clinvar_name, len(variants_df.index))
     # Apply the function to each variant
     variants_df['in_transcript'] = variants_df.apply(is_in_transcript, axis=1, args=(transcripts_df,))
+    for index, transcript_and_name in enumerate(variants_df['in_transcript']):
+        if transcript_and_name is not None:
+            subset_df = transcripts_df[transcripts_df.transcript_and_name == transcript_and_name]
+            clinvar_row = variants_df.loc[index]
+            print(clinvar_row)
+            raise Error
+            subset_df.start.astype(int)
+            subset_df.end.astype(int)
+
+            filename = f'{transcript_and_name}.txt'
+            # it is a normal txt file, just a string with no new lines
+            with open(filename, 'r') as file:
+                data = file.read()
+            raise Error
+    # we should leave it like this in this function. We will need to do this again with other datasets
+    # make a new str for each clinvar variant
 
     # for every variant that we know intersects, make the change in the string file. 
+
 
     # use transcript_and_name to get the string file
 
