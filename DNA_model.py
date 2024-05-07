@@ -82,7 +82,7 @@
 
 
 # New Transformer Encoders:
-# LN(SAs): LN_SAs -> MHA(LN_SAs): MHA -> add(MHA, residuals of SAs): MHA+ -> LN: LN_MHA+ -> add(FFN(LN_MHA+), residuals of LN_MHA+) -> LN -> new_embeds (seq_len, embed_size)
+# LN(SAs): LN_SAs -> MHA(LN_SAs): MHA -> add(MHA, residuals of SAs): MHA+ -> LN: LN_MHA+ -> add(FFN(LN_MHA+), residuals of LN_MHA+) -> new_embeds (seq_len, embed_size)
 # and we have contextualized new_embeds (seq_len, embed_size)
 
 # TRUE END OF TRANSFORMER BLOCK!
@@ -347,7 +347,7 @@
 # it also improves thread block partitioning to reduce the synchronization and comm between groups of 32 threads
 
 # Fa1 only supported head dimensions up to 128, now FA2 goes up to 256
-# FA2 also supports multiquery attention (MQA) and Grouped buery attention (GQA)
+# FA2 also supports multiquery attention (MQA) and Grouped query attention (GQA)
 # these are attention variants where multiple heads of a query attend to the same 
 # head of key and value, in order to reduce the size of KV cache during inference
 # this increases inference throughput -- important for actual use lol
