@@ -384,7 +384,7 @@ def main():
         "<unk>",
         "<mask>",
     ])
-    tokenizer.train(files=["chr1_smoothed_str.txt"], trainer=trainer)
+    tokenizer.train(files=["../phastcons_smoothed/chr1_smoothed_str.txt"], trainer=trainer)
 
     # Now you can encode text
     output = tokenizer.encode("Hello, world!")
