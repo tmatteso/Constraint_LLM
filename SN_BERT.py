@@ -366,6 +366,31 @@ def get_args(parser):
 
 
 def main():
+
+    from tokenizers import Tokenizer, models, pre_tokenizers, decoders, trainers
+
+    # Initialize a tokenizer
+    tokenizer = Tokenizer(models.BPE())
+
+    # Customize pre-tokenization and decoding
+    tokenizer.pre_tokenizer = pre_tokenizers.ByteLevel(add_prefix_space=False)
+    tokenizer.decoder = decoders.ByteLevel()
+
+    # Customize training
+    trainer = trainers.BpeTrainer(vocab_size=256, min_frequency=1, special_tokens=[
+        "<s>",
+        "<pad>",
+        "</s>",
+        "<unk>",
+        "<mask>",
+    ])
+    tokenizer.train(files=["chr1_smoothed_str.txt"], trainer=trainer)
+
+    # Now you can encode text
+    output = tokenizer.encode("Hello, world!")
+    print(output.tokens)
+    raise Error
+
     # Parse the arguments
     args = get_args(ArgumentParser()).parse_args()
     criterion = nn.CrossEntropyLoss()
