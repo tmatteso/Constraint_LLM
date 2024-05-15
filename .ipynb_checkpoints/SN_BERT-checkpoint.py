@@ -321,18 +321,7 @@ class ConstraintBertModel(nn.Module):
         # add positional encoding
         self.embed_positions = SinusoidalPositionalEmbedding(self.embedding_dim, self.padding_idx)
         # add nn.TransformerEncoderLayer to fsdp and activation checkpointing
-        # self.whole_encoder = nn.Sequential(*[
-        #     TfBlock(
-        #         dim=self.embedding_dim,
-        #         n_heads=self.head_num,
-        #         dropout=self.dropout,
-        #         attn_weight_dropout=0.0, # what should this number be?
-        #         qkv_bias=False,
-        #         dim_feedforward=self.ffn_embedding_dim
-        #     ) for _ in range(self.encoder_layers)
-        # ])
-
-        self.whole_encoder = CustomModule([
+        self.whole_encoder = nn.Sequential(*[
             TfBlock(
                 dim=self.embedding_dim,
                 n_heads=self.head_num,
@@ -342,6 +331,17 @@ class ConstraintBertModel(nn.Module):
                 dim_feedforward=self.ffn_embedding_dim
             ) for _ in range(self.encoder_layers)
         ])
+
+        self.whole_encoder = CustomModule(nn.Sequential(*[
+            TfBlock(
+                dim=self.embedding_dim,
+                n_heads=self.head_num,
+                dropout=self.dropout,
+                attn_weight_dropout=0.0, # what should this number be?
+                qkv_bias=False,
+                dim_feedforward=self.ffn_embedding_dim
+            ) for _ in range(self.encoder_layers)
+        ]))
         # encoder_block = nn.TransformerEncoderLayer(d_model = self.embedding_dim, 
         #                                          nhead = self.head_num, 
         #                                          dim_feedforward = self.ffn_embedding_dim,
@@ -609,8 +609,8 @@ def single_GPU_main(train_path, val_path, epoch_num, model, optim, criterion, us
         
 
         # save a model checkpoint
-        torch.save(model.state_dict(), f'model_checkpoint_{e}.pth')
-        print(f"model saved at model_checkpoint_{e}.pth")
+        torch.save(model.state_dict(), f'model_checkpoint_{e}_rankd.pth')
+        print(f"model saved at model_checkpoint_{e}_rankd.pth")
 
         # I want a validation loss check here. Given 70,000 samples, let's hold out 1000 randomly
         val_loss = validate(validation_loader, model, criterion, tokenizer, rank)
@@ -710,6 +710,7 @@ def main():
     train_path, val_path = "phastcons_smoothed/all_but_chr9_str.txt", "phastcons_smoothed/chr9_smoothed_str.txt"
     
     tokenizer = Tokenizer.from_file("sn_tokenizer.json") 
+    print((tokenizer.get_vocab_size()))
     #"transcript_tokenizer.json")#"chr1_tokenizer.json")
     print("tokenizer loaded")
     # you need to add all the special tokens to tokenizer
@@ -722,6 +723,12 @@ def main():
     # that would expose the heads to do it 
     # need to init the model
     model = ConstraintBertModel(tokenizer)
+    # for name, param in model.named_parameters():
+    #     print(f"Name: {name}")
+    #     print(f"Parameter: {param}")
+    #     print(f"Parameter shape: {param.shape}")
+    #     print("\n")
+
     #print([param for param in model.parameters()])
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)# lr=5e-5)
     #print("hi", (optimizer))
