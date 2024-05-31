@@ -475,7 +475,8 @@ def epoch(model, rank, criterion,
     accumulation_counter = 0
     total_loss = 0 
 
-    print(len(train_loader))
+    print("number of batches in train loader", len(train_loader))
+    raise Error
     for batch_i, (data) in enumerate(train_loader):
         with autocast(dtype=torch.bfloat16):
             #encoded_sequence = torch.tensor(tokenizer.encode(data[0]).ids, dtype=torch.long).to(rank) #[:seq_len
@@ -705,9 +706,9 @@ def main():
     ]
     filelist = glob.glob("phastcons_smoothed/chr1*str.txt") + glob.glob("phastcons_smoothed/chr2*str.txt") + all_other_chr
    
-    merged_file_name = "phastcons_smoothed/all_but_chr9_str.txt"
-    merge_train_set(filelist, merged_file_name)
-    train_path, val_path = "phastcons_smoothed/all_but_chr9_str.txt", "phastcons_smoothed/chr9_smoothed_str.txt"
+    # merged_file_name = "phastcons_smoothed/all_but_chr9_str.txt"
+    # merge_train_set(filelist, merged_file_name)
+    train_path, val_path = "rankd_unsmoothed/all_but_chr9_str.txt", "rankd_unsmoothed/chr9_unsmoothed_str.txt"
     
     tokenizer = Tokenizer.from_file("sn_tokenizer.json") 
     print((tokenizer.get_vocab_size()))
